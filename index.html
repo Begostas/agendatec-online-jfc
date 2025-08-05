@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark-theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agendamento de Equipamentos de Tecnologia</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-laptop"></i> Sistema de Agendamento de Equipamentos de Tecnologia</h1>
+            <p>Escola Municipal Júlio Fernandes Colino</p>
+            <div class="theme-badge"><i class="fas fa-moon"></i> Tema Escuro</div>
+        </header>
+
+        <main>
+            <section class="form-container">
+                <h2>Novo Agendamento</h2>
+                <form id="agendamento-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nome">Nome*</label>
+                            <input type="text" id="nome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="turma">Turma*</label>
+                            <input type="text" id="turma" name="turma" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contato">Dados para contato (e-mail ou telefone)*</label>
+                            <input type="text" id="contato" name="contato" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="equipamento">Equipamento*</label>
+                            <select id="equipamento" name="equipamento" required>
+                                <option value="">Selecione um equipamento</option>
+                                <option value="Sala de Informática">Sala de Informática</option>
+                                <option value="Lousa 1">Lousa 1</option>
+                                <option value="Lousa 2">Lousa 2</option>
+                                <option value="Caixa de som">Caixa de som</option>
+                                <option value="Microfone">Microfone</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="data">Data do agendamento*</label>
+                            <input type="date" id="data" name="data" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hora-inicio">Hora de início*</label>
+                            <select id="hora-inicio" name="hora-inicio" required>
+                                <option value="">Selecione o horário</option>
+                                <!-- Opções serão preenchidas via JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="hora-fim">Hora de término*</label>
+                            <select id="hora-fim" name="hora-fim" required>
+                                <option value="">Selecione o horário</option>
+                                <!-- Opções serão preenchidas via JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="mensagem">Mensagem</label>
+                        <textarea id="mensagem" name="mensagem" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-agendar" disabled>Registrar Agendamento</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="agendamentos-container">
+                <h2>Agendamentos Realizados</h2>
+                <div class="table-container">
+                    <table id="tabela-agendamentos">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Turma</th>
+                                <th>Equipamento</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Mensagem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Agendamentos serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Sistema de Agendamento Escolar | Desenvolvido para Escola Municipal Júlio Fernandes Colino</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

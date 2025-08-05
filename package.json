@@ -1,0 +1,23 @@
+{
+  "name": "projeto-agendamento",
+  "version": "1.0.0",
+  "description": "Sistema de agendamento de equipamentos tecnológicos para escola",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "agendamento",
+    "escola",
+    "equipamentos",
+    "tecnologia"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "vercel": "^28.0.0"
+  }
+}
