@@ -5,12 +5,6 @@
     { "src": "/api/agendamentos", "dest": "/api/agendamentos.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
-  "functions": {
-    "api/agendamentos.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "github": {
     "silent": true
   }
