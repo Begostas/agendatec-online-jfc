@@ -2,8 +2,8 @@
 class SupabaseConfig {
     constructor() {
         // Configurações do Supabase - substitua pelos seus valores reais
-        this.supabaseUrl = 'https://your-project-url.supabase.co';
-        this.supabaseKey = 'your-anon-key-here';
+        this.supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
+        this.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
         
         // Inicializar cliente Supabase
         this.supabase = null;
