@@ -1,57 +1,13 @@
-// Configuração do Supabase
-class SupabaseConfig {
-    constructor() {
-        // Configurações do Supabase - substitua pelos seus valores reais
-        this.supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
-        this.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
-        
-        // Inicializar cliente Supabase
-        this.supabase = null;
-        this.initSupabase();
-    }
+// Configuração direta do Supabase para uso no navegador
+const SUPABASE_URL = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
 
-    initSupabase() {
-        try {
-            if (typeof supabase !== 'undefined') {
-                this.supabase = supabase.createClient(this.supabaseUrl, this.supabaseKey);
-                console.log('Supabase inicializado com sucesso');
-            } else {
-                console.error('Supabase não está disponível. Verifique se o script foi carregado.');
-            }
-        } catch (error) {
-            console.error('Erro ao inicializar Supabase:', error);
-        }
-    }
+// Cria o cliente Supabase global
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    getClient() {
-        return this.supabase;
-    }
-
-    // Verificar se o Supabase está conectado
-    async testConnection() {
-        try {
-            if (!this.supabase) {
-                throw new Error('Cliente Supabase não inicializado');
-            }
-            
-            // Teste simples de conexão
-            const { data, error } = await this.supabase
-                .from('agendamentos')
-                .select('count', { count: 'exact', head: true });
-            
-            if (error) {
-                console.error('Erro na conexão com Supabase:', error);
-                return false;
-            }
-            
-            console.log('Conexão com Supabase OK');
-            return true;
-        } catch (error) {
-            console.error('Erro ao testar conexão:', error);
-            return false;
-        }
-    }
-}
-
-// Instância global do Supabase
-const supabaseConfig = new SupabaseConfig();
+// Teste de conexão (aparece no console)
+supabaseClient.from('agendamentos').select('*').limit(1)
+    .then(({ data, error }) => {
+        if (error) console.error('Erro ao conectar no Supabase:', error.message);
+        else console.log('Conexão com Supabase OK. Primeira linha:', data);
+    });
