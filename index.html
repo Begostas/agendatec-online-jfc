@@ -12,7 +12,6 @@
         <header>
             <h1><i class="fas fa-laptop"></i> Sistema de Agendamento de Equipamentos de Tecnologia</h1>
             <p>Escola Municipal Júlio Fernandes Colino</p>
-            <div class="theme-badge"><i class="fas fa-moon"></i> Tema Escuro</div>
         </header>
 
         <main>
@@ -36,15 +35,30 @@
                             <input type="text" id="contato" name="contato" required>
                         </div>
                         <div class="form-group">
-                            <label for="equipamento">Equipamento*</label>
-                            <select id="equipamento" name="equipamento" required>
-                                <option value="">Selecione um equipamento</option>
-                                <option value="Sala de Informática">Sala de Informática</option>
-                                <option value="Lousa 1">Lousa 1</option>
-                                <option value="Lousa 2">Lousa 2</option>
-                                <option value="Caixa de som">Caixa de som</option>
-                                <option value="Microfone">Microfone</option>
-                            </select>
+                            <label for="equipamentos">Equipamentos* (Selecione um ou mais)</label>
+                            <div class="checkbox-group" id="equipamentos-container">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="equip-sala" name="equipamentos" value="Sala de Informática">
+                                    <label for="equip-sala">Sala de Informática</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="equip-lousa1" name="equipamentos" value="Lousa 1" class="lousa-checkbox">
+                                    <label for="equip-lousa1">Lousa 1</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="equip-lousa2" name="equipamentos" value="Lousa 2" class="lousa-checkbox">
+                                    <label for="equip-lousa2">Lousa 2</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="equip-caixa" name="equipamentos" value="Caixa de som">
+                                    <label for="equip-caixa">Caixa de som</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="equip-microfone" name="equipamentos" value="Microfone">
+                                    <label for="equip-microfone">Microfone</label>
+                                </div>
+                            </div>
+                            <div class="error-message" id="equipamentos-erro" style="display: none;">Selecione pelo menos um equipamento</div>
                         </div>
                     </div>
 

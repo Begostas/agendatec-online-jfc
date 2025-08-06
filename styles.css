@@ -104,6 +104,53 @@ label {
     color: var(--text-color);
 }
 
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    background-color: #2a2a2a;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s;
+}
+
+.checkbox-item:hover {
+    background-color: #3a3a3a;
+}
+
+.checkbox-item input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.checkbox-item:has(input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #1a1a1a;
+}
+
+.checkbox-item:has(input:disabled):hover {
+    background-color: #1a1a1a;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
 input, select, textarea {
     width: 100%;
     padding: 12px;

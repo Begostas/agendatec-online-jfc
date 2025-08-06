@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputData = document.getElementById('data');
     const selectHoraInicio = document.getElementById('hora-inicio');
     const selectHoraFim = document.getElementById('hora-fim');
-    const selectEquipamento = document.getElementById('equipamento');
+    const equipamentosContainer = document.getElementById('equipamentos-container');
+    const checkboxesEquipamentos = document.querySelectorAll('input[name="equipamentos"]');
+    const lousaCheckboxes = document.querySelectorAll('.lousa-checkbox');
     
     // Dados de agendamentos
     let agendamentos = [];
@@ -211,14 +213,42 @@ function mostrarMensagemRemocao(mensagem) {
         }
     }
     
-    // Verificar disponibilidade do equipamento na data e horário selecionados
+    // Obter equipamentos selecionados
+    function getEquipamentosSelecionados() {
+        const equipamentos = [];
+        checkboxesEquipamentos.forEach(checkbox => {
+            if (checkbox.checked) {
+                equipamentos.push(checkbox.value);
+            }
+        });
+        return equipamentos;
+    }
+    
+    // Verificar se há duas lousas selecionadas
+    function verificarDuasLousasSelecionadas() {
+        let lousasSelecionadas = 0;
+        lousaCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                lousasSelecionadas++;
+            }
+        });
+        return lousasSelecionadas > 1;
+    }
+    
+    // Verificar disponibilidade dos equipamentos na data e horário selecionados
     function verificarDisponibilidade() {
-        const equipamento = selectEquipamento.value;
+        const equipamentosSelecionados = getEquipamentosSelecionados();
         const data = inputData.value;
         const horaInicio = selectHoraInicio.value;
         const horaFim = selectHoraFim.value;
         
-        if (!equipamento || !data || !horaInicio || !horaFim) return true;
+        if (equipamentosSelecionados.length === 0 || !data || !horaInicio || !horaFim) return true;
+        
+        // Verificar se há duas lousas selecionadas
+        if (verificarDuasLousasSelecionadas()) {
+            mostrarErro('Não é permitido agendar duas lousas simultaneamente.');
+            return false;
+        }
         
         // Converter horários para comparação
         const [horaInicioH, horaInicioM] = horaInicio.split(':').map(Number);
@@ -226,34 +256,44 @@ function mostrarMensagemRemocao(mensagem) {
         const inicioEmMinutos = horaInicioH * 60 + horaInicioM;
         const fimEmMinutos = horaFimH * 60 + horaFimM;
         
-        // Verificar conflitos de agendamento
-        for (const agendamento of agendamentos) {
-            if (agendamento.data === data) {
-                // Verificar se é o mesmo equipamento
-                if (agendamento.equipamento === equipamento) {
-                    // Converter horários do agendamento existente
-                    const [agendaInicioH, agendaInicioM] = agendamento.horaInicio.split(':').map(Number);
-                    const [agendaFimH, agendaFimM] = agendamento.horaFim.split(':').map(Number);
-                    const agendaInicioEmMinutos = agendaInicioH * 60 + agendaInicioM;
-                    const agendaFimEmMinutos = agendaFimH * 60 + agendaFimM;
+        // Verificar conflitos de agendamento para cada equipamento selecionado
+        for (const equipamento of equipamentosSelecionados) {
+            for (const agendamento of agendamentos) {
+                if (agendamento.data === data) {
+                    // Verificar se o agendamento existente contém o equipamento atual
+                    const equipamentosAgendamento = Array.isArray(agendamento.equipamentos) ? 
+                        agendamento.equipamentos : [agendamento.equipamento];
                     
-                    // Verificar sobreposição de horários
-                    if (!(fimEmMinutos <= agendaInicioEmMinutos || inicioEmMinutos >= agendaFimEmMinutos)) {
-                        return false; // Há conflito
+                    if (equipamentosAgendamento.includes(equipamento)) {
+                        // Converter horários do agendamento existente
+                        const [agendaInicioH, agendaInicioM] = agendamento.horaInicio.split(':').map(Number);
+                        const [agendaFimH, agendaFimM] = agendamento.horaFim.split(':').map(Number);
+                        const agendaInicioEmMinutos = agendaInicioH * 60 + agendaInicioM;
+                        const agendaFimEmMinutos = agendaFimH * 60 + agendaFimM;
+                        
+                        // Verificar sobreposição de horários
+                        if (!(fimEmMinutos <= agendaInicioEmMinutos || inicioEmMinutos >= agendaFimEmMinutos)) {
+                            mostrarErro(`O equipamento "${equipamento}" já está agendado para este horário.`);
+                            return false; // Há conflito
+                        }
                     }
-                }
-                // Verificar regra de não agendar duas lousas simultaneamente
-                else if ((equipamento === 'Lousa 1' || equipamento === 'Lousa 2') && 
-                         (agendamento.equipamento === 'Lousa 1' || agendamento.equipamento === 'Lousa 2')) {
-                    // Converter horários do agendamento existente
-                    const [agendaInicioH, agendaInicioM] = agendamento.horaInicio.split(':').map(Number);
-                    const [agendaFimH, agendaFimM] = agendamento.horaFim.split(':').map(Number);
-                    const agendaInicioEmMinutos = agendaInicioH * 60 + agendaInicioM;
-                    const agendaFimEmMinutos = agendaFimH * 60 + agendaFimM;
                     
-                    // Verificar sobreposição de horários
-                    if (!(fimEmMinutos <= agendaInicioEmMinutos || inicioEmMinutos >= agendaFimEmMinutos)) {
-                        return false; // Há conflito
+                    // Verificar regra de não agendar lousa quando outra já está agendada
+                    const temLousaSelecionada = equipamento === 'Lousa 1' || equipamento === 'Lousa 2';
+                    const temLousaAgendada = equipamentosAgendamento.some(eq => eq === 'Lousa 1' || eq === 'Lousa 2');
+                    
+                    if (temLousaSelecionada && temLousaAgendada && equipamento !== agendamento.equipamento) {
+                        // Converter horários do agendamento existente
+                        const [agendaInicioH, agendaInicioM] = agendamento.horaInicio.split(':').map(Number);
+                        const [agendaFimH, agendaFimM] = agendamento.horaFim.split(':').map(Number);
+                        const agendaInicioEmMinutos = agendaInicioH * 60 + agendaInicioM;
+                        const agendaFimEmMinutos = agendaFimH * 60 + agendaFimM;
+                        
+                        // Verificar sobreposição de horários
+                        if (!(fimEmMinutos <= agendaInicioEmMinutos || inicioEmMinutos >= agendaFimEmMinutos)) {
+                            mostrarErro('Não é permitido agendar duas lousas simultaneamente.');
+                            return false; // Há conflito
+                        }
                     }
                 }
             }
@@ -281,13 +321,21 @@ function mostrarMensagemRemocao(mensagem) {
         const nome = document.getElementById('nome').value;
         const turma = document.getElementById('turma').value;
         const contato = document.getElementById('contato').value;
-        const equipamento = selectEquipamento.value;
+        const equipamentosSelecionados = getEquipamentosSelecionados();
         const data = inputData.value;
         const horaInicio = selectHoraInicio.value;
         const horaFim = selectHoraFim.value;
         
+        // Verificar se pelo menos um equipamento está selecionado
+        const equipamentosErro = document.getElementById('equipamentos-erro');
+        if (equipamentosSelecionados.length === 0) {
+            equipamentosErro.style.display = 'block';
+        } else {
+            equipamentosErro.style.display = 'none';
+        }
+        
         // Verificar se todos os campos obrigatórios estão preenchidos
-        if (!nome || !turma || !contato || !equipamento || !data || !horaInicio || !horaFim) {
+        if (!nome || !turma || !contato || equipamentosSelecionados.length === 0 || !data || !horaInicio || !horaFim) {
             btnAgendar.disabled = true;
             return false;
         }
@@ -349,7 +397,16 @@ function mostrarMensagemRemocao(mensagem) {
         // Preencher células
         celulaNome.textContent = agendamento.nome;
         celulaTurma.textContent = agendamento.turma;
-        celulaEquipamento.textContent = agendamento.equipamento;
+        
+        // Tratar equipamentos (pode ser string ou array)
+        let equipamentosTexto = '';
+        if (Array.isArray(agendamento.equipamentos)) {
+            equipamentosTexto = agendamento.equipamentos.join(', ');
+        } else {
+            equipamentosTexto = agendamento.equipamento || '';
+        }
+        celulaEquipamento.textContent = equipamentosTexto;
+        
         celulaData.textContent = dataFormatada;
         celulaHorario.textContent = `${agendamento.horaInicio} - ${agendamento.horaFim}`;
         celulaMensagem.textContent = agendamento.mensagem || '-';
@@ -497,6 +554,26 @@ function mostrarMensagemRemocao(mensagem) {
         validarFormulario();
     });
     
+    // Event listeners para os checkboxes de equipamentos
+    checkboxesEquipamentos.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            // Verificar se é uma lousa e implementar exclusividade
+            if (checkbox.value === 'Lousa 1' || checkbox.value === 'Lousa 2') {
+                const outraLousa = checkbox.value === 'Lousa 1' ? 
+                    document.querySelector('input[value="Lousa 2"]') : 
+                    document.querySelector('input[value="Lousa 1"]');
+                
+                if (checkbox.checked && outraLousa) {
+                    outraLousa.disabled = true;
+                    outraLousa.checked = false;
+                } else if (!checkbox.checked && outraLousa) {
+                    outraLousa.disabled = false;
+                }
+            }
+            validarFormulario();
+        });
+    });
+
     // Validar formulário quando campos mudarem
     form.addEventListener('input', validarFormulario);
     selectHoraFim.addEventListener('change', validarFormulario);
@@ -515,7 +592,7 @@ function mostrarMensagemRemocao(mensagem) {
                 nome: document.getElementById('nome').value,
                 turma: document.getElementById('turma').value,
                 contato: document.getElementById('contato').value,
-                equipamento: selectEquipamento.value,
+                equipamentos: getEquipamentosSelecionados(),
                 data: inputData.value,
                 horaInicio: selectHoraInicio.value,
                 horaFim: selectHoraFim.value,
