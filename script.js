@@ -7,6 +7,21 @@ const tabelaBody = document.querySelector('#tabela-agendamentos tbody');
 document.addEventListener('DOMContentLoaded', () => {
     btnAgendar.disabled = false;
     carregarAgendamentos();
+    
+    // Adicionar funcionalidade de seleção exclusiva para lousas
+    const lousaCheckboxes = document.querySelectorAll('.lousa-checkbox');
+    lousaCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Desmarcar todas as outras lousas quando uma for selecionada
+                lousaCheckboxes.forEach(otherCheckbox => {
+                    if (otherCheckbox !== this) {
+                        otherCheckbox.checked = false;
+                    }
+                });
+            }
+        });
+    });
 });
 
 // -------------------- FUNÇÕES -------------------- //
