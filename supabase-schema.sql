@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS agendamentos (
     contato VARCHAR(255) NOT NULL,
     equipamentos TEXT[] NOT NULL, -- Array de equipamentos
     data DATE NOT NULL,
-    hora_inicio TIME NOT NULL,
-    hora_fim TIME NOT NULL,
+    "horaInicio" TIME NOT NULL,
+    "horaFim" TIME NOT NULL,
     mensagem TEXT,
     timestamp TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -57,7 +57,7 @@ CREATE TRIGGER update_agendamentos_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Inserir alguns dados de exemplo (opcional)
-INSERT INTO agendamentos (nome, turma, contato, equipamentos, data, hora_inicio, hora_fim, mensagem) VALUES
+INSERT INTO agendamentos (nome, turma, contato, equipamentos, data, "horaInicio", "horaFim", mensagem) VALUES
 ('Professor Exemplo', '9º Ano', 'professor@escola.com', ARRAY['Sala de Informática'], CURRENT_DATE + INTERVAL '1 day', '08:00', '10:00', 'Aula de programação'),
 ('Maria Silva', '7º Ano', 'maria@escola.com', ARRAY['Lousa 1'], CURRENT_DATE + INTERVAL '2 days', '13:00', '15:00', 'Aula de matemática'),
 ('João Santos', '8º Ano', 'joao@escola.com', ARRAY['Caixa de som', 'Microfone'], CURRENT_DATE + INTERVAL '3 days', '09:00', '11:00', 'Apresentação de trabalho')
@@ -67,6 +67,6 @@ ON CONFLICT DO NOTHING;
 COMMENT ON TABLE agendamentos IS 'Tabela para armazenar agendamentos de equipamentos escolares';
 COMMENT ON COLUMN agendamentos.equipamentos IS 'Array de equipamentos agendados (Sala de Informática, Lousa 1, Lousa 2, Caixa de som, Microfone)';
 COMMENT ON COLUMN agendamentos.data IS 'Data do agendamento';
-COMMENT ON COLUMN agendamentos.hora_inicio IS 'Hora de início do agendamento';
-COMMENT ON COLUMN agendamentos.hora_fim IS 'Hora de término do agendamento';
+COMMENT ON COLUMN agendamentos."horaInicio" IS 'Hora de início do agendamento';
+COMMENT ON COLUMN agendamentos."horaFim" IS 'Hora de término do agendamento';
 COMMENT ON COLUMN agendamentos.timestamp IS 'Timestamp de quando o agendamento foi criado';

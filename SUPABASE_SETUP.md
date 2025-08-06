@@ -15,10 +15,17 @@
 ## Passo 2: Configurar o Banco de Dados
 
 1. No painel do Supabase, vá para **SQL Editor**
-2. Copie todo o conteúdo do arquivo `supabase-schema.sql`
-3. Cole no editor SQL
-4. Clique em **Run** para executar o script
-5. Verifique se a tabela `agendamentos` foi criada em **Table Editor**
+2. Execute o script `supabase-schema.sql` que está na raiz do projeto
+3. Isso criará:
+   - Tabela `agendamentos` com todas as colunas necessárias
+   - Índices para melhor performance
+   - Políticas RLS para acesso público
+   - Dados de exemplo (opcional)
+
+**Importante:** O schema foi atualizado para usar nomes de colunas consistentes:
+- `horaInicio` (em camelCase) em vez de `hora_inicio`
+- `horaFim` (em camelCase) em vez de `hora_fim`
+- Isso garante compatibilidade com o frontend JavaScript
 
 ## Passo 3: Obter as Credenciais
 
