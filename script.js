@@ -18,6 +18,20 @@ document.addEventListener('DOMContentLoaded', function() {
         ? 'http://localhost:3000/api/agendamentos' 
         : '/api/agendamentos';
     
+    // Cliente Supabase (será inicializado quando disponível)
+    let supabaseClient = null;
+    
+    // Inicializar Supabase quando disponível
+    function initSupabaseClient() {
+        if (typeof supabaseConfig !== 'undefined' && supabaseConfig.getClient()) {
+            supabaseClient = supabaseConfig.getClient();
+            console.log('Cliente Supabase inicializado no frontend');
+        }
+    }
+    
+    // Tentar inicializar Supabase
+    setTimeout(initSupabaseClient, 100);
+    
     // Função para limpar agendamentos antigos (mais de 15 dias)
 async function limparAgendamentosAntigos() {
     const hoje = new Date();
@@ -417,39 +431,57 @@ function mostrarMensagemRemocao(mensagem) {
         tabelaAgendamentos.innerHTML = '';
         
         try {
+            // Tentar carregar da API primeiro
             const response = await fetch(API_URL);
             if (!response.ok) {
-                throw new Error('Erro ao carregar agendamentos');
+                throw new Error('Erro ao carregar agendamentos da API');
             }
             
             agendamentos = await response.json();
+            console.log('Agendamentos carregados da API');
             
-            // Ordenar agendamentos por data e hora
-            agendamentos.sort((a, b) => {
-                if (a.data !== b.data) return a.data.localeCompare(b.data);
-                return a.horaInicio.localeCompare(b.horaInicio);
-            });
-            
-            // Adicionar à tabela
-            agendamentos.forEach(agendamento => {
-                adicionarAgendamentoTabela(agendamento);
-            });
         } catch (error) {
-            console.error('Erro ao carregar agendamentos:', error);
-            // Fallback para localStorage se a API falhar
-            const agendamentosLocal = JSON.parse(localStorage.getItem('agendamentos')) || [];
-            agendamentos = agendamentosLocal;
+            console.error('Erro ao carregar da API:', error);
             
-            // Ordenar e exibir agendamentos do localStorage
-            agendamentos.sort((a, b) => {
-                if (a.data !== b.data) return a.data.localeCompare(b.data);
-                return a.horaInicio.localeCompare(b.horaInicio);
-            });
-            
-            agendamentos.forEach(agendamento => {
-                adicionarAgendamentoTabela(agendamento);
-            });
+            // Fallback para Supabase direto
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('agendamentos')
+                        .select('*')
+                        .order('data', { ascending: true });
+                    
+                    if (error) throw error;
+                    
+                    agendamentos = data || [];
+                    console.log('Agendamentos carregados do Supabase');
+                    
+                } catch (supabaseError) {
+                    console.error('Erro ao carregar do Supabase:', supabaseError);
+                    
+                    // Último fallback para localStorage
+                    const agendamentosLocal = JSON.parse(localStorage.getItem('agendamentos')) || [];
+                    agendamentos = agendamentosLocal;
+                    console.log('Agendamentos carregados do localStorage');
+                }
+            } else {
+                // Fallback direto para localStorage se Supabase não estiver disponível
+                const agendamentosLocal = JSON.parse(localStorage.getItem('agendamentos')) || [];
+                agendamentos = agendamentosLocal;
+                console.log('Agendamentos carregados do localStorage (Supabase indisponível)');
+            }
         }
+        
+        // Ordenar agendamentos por data e hora
+        agendamentos.sort((a, b) => {
+            if (a.data !== b.data) return a.data.localeCompare(b.data);
+            return a.horaInicio.localeCompare(b.horaInicio);
+        });
+        
+        // Adicionar à tabela
+        agendamentos.forEach(agendamento => {
+            adicionarAgendamentoTabela(agendamento);
+        });
     }
     
     // Função para limpar agendamentos antigos (mais de 15 dias)
@@ -494,31 +526,55 @@ function mostrarMensagemRemocao(mensagem) {
         }, 5000);
     }
     
-    // Salvar agendamentos na API
-    async function salvarAgendamentos() {
+    // Salvar novo agendamento
+    async function salvarNovoAgendamento(agendamento) {
         try {
+            // Tentar salvar na API primeiro
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(agendamentos)
+                body: JSON.stringify(agendamento)
             });
             
             if (!response.ok) {
-                throw new Error('Erro ao salvar agendamentos');
+                throw new Error('Erro ao salvar na API');
             }
             
-            // Backup no localStorage caso a API falhe no futuro
-            localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
-            
+            console.log('Agendamento salvo na API');
             return true;
+            
         } catch (error) {
-            console.error('Erro ao salvar agendamentos na API:', error);
-            // Fallback para localStorage
-            localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+            console.error('Erro ao salvar na API:', error);
+            
+            // Fallback para Supabase direto
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('agendamentos')
+                        .insert([agendamento])
+                        .select();
+                    
+                    if (error) throw error;
+                    
+                    console.log('Agendamento salvo no Supabase');
+                    return true;
+                    
+                } catch (supabaseError) {
+                    console.error('Erro ao salvar no Supabase:', supabaseError);
+                }
+            }
+            
+            // Último fallback para localStorage
+            console.log('Salvando no localStorage como fallback');
             return false;
         }
+    }
+    
+    // Salvar agendamentos no localStorage (backup)
+    function salvarAgendamentos() {
+        localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
     }
     
     // Mostrar mensagem de sucesso
@@ -600,11 +656,14 @@ function mostrarMensagemRemocao(mensagem) {
             };
             
             try {
-                // Adicionar ao array
+                // Salvar novo agendamento
+                const salvou = await salvarNovoAgendamento(novoAgendamento);
+                
+                // Adicionar ao array local
                 agendamentos.push(novoAgendamento);
                 
-                // Salvar na API
-                const salvou = await salvarAgendamentos();
+                // Backup no localStorage
+                salvarAgendamentos();
                 
                 // Atualizar tabela
                 adicionarAgendamentoTabela(novoAgendamento);

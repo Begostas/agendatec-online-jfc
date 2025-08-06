@@ -1,0 +1,72 @@
+-- Schema para o banco de dados Supabase
+-- Execute este script no SQL Editor do Supabase
+
+-- Criar tabela de agendamentos
+CREATE TABLE IF NOT EXISTS agendamentos (
+    id BIGSERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    turma VARCHAR(100) NOT NULL,
+    contato VARCHAR(255) NOT NULL,
+    equipamentos TEXT[] NOT NULL, -- Array de equipamentos
+    data DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fim TIME NOT NULL,
+    mensagem TEXT,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Criar índices para melhor performance
+CREATE INDEX IF NOT EXISTS idx_agendamentos_data ON agendamentos(data);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_equipamentos ON agendamentos USING GIN(equipamentos);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_timestamp ON agendamentos(timestamp);
+
+-- Habilitar RLS (Row Level Security)
+ALTER TABLE agendamentos ENABLE ROW LEVEL SECURITY;
+
+-- Política para permitir leitura pública
+CREATE POLICY "Permitir leitura pública" ON agendamentos
+    FOR SELECT USING (true);
+
+-- Política para permitir inserção pública
+CREATE POLICY "Permitir inserção pública" ON agendamentos
+    FOR INSERT WITH CHECK (true);
+
+-- Política para permitir atualização pública (opcional)
+CREATE POLICY "Permitir atualização pública" ON agendamentos
+    FOR UPDATE USING (true);
+
+-- Política para permitir exclusão pública (para limpeza automática)
+CREATE POLICY "Permitir exclusão pública" ON agendamentos
+    FOR DELETE USING (true);
+
+-- Função para atualizar o campo updated_at automaticamente
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger para atualizar updated_at
+CREATE TRIGGER update_agendamentos_updated_at
+    BEFORE UPDATE ON agendamentos
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Inserir alguns dados de exemplo (opcional)
+INSERT INTO agendamentos (nome, turma, contato, equipamentos, data, hora_inicio, hora_fim, mensagem) VALUES
+('Professor Exemplo', '9º Ano', 'professor@escola.com', ARRAY['Sala de Informática'], CURRENT_DATE + INTERVAL '1 day', '08:00', '10:00', 'Aula de programação'),
+('Maria Silva', '7º Ano', 'maria@escola.com', ARRAY['Lousa 1'], CURRENT_DATE + INTERVAL '2 days', '13:00', '15:00', 'Aula de matemática'),
+('João Santos', '8º Ano', 'joao@escola.com', ARRAY['Caixa de som', 'Microfone'], CURRENT_DATE + INTERVAL '3 days', '09:00', '11:00', 'Apresentação de trabalho')
+ON CONFLICT DO NOTHING;
+
+-- Comentários sobre a estrutura
+COMMENT ON TABLE agendamentos IS 'Tabela para armazenar agendamentos de equipamentos escolares';
+COMMENT ON COLUMN agendamentos.equipamentos IS 'Array de equipamentos agendados (Sala de Informática, Lousa 1, Lousa 2, Caixa de som, Microfone)';
+COMMENT ON COLUMN agendamentos.data IS 'Data do agendamento';
+COMMENT ON COLUMN agendamentos.hora_inicio IS 'Hora de início do agendamento';
+COMMENT ON COLUMN agendamentos.hora_fim IS 'Hora de término do agendamento';
+COMMENT ON COLUMN agendamentos.timestamp IS 'Timestamp de quando o agendamento foi criado';
