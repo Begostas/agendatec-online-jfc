@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Configuração do Supabase
 const supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
 
 if (!supabaseUrl || !supabaseKey) {
     console.error('Variáveis de ambiente do Supabase não configuradas');

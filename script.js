@@ -342,10 +342,12 @@ function mostrarMensagemRemocao(mensagem) {
         
         // Verificar se pelo menos um equipamento está selecionado
         const equipamentosErro = document.getElementById('equipamentos-erro');
-        if (equipamentosSelecionados.length === 0) {
-            equipamentosErro.style.display = 'block';
-        } else {
-            equipamentosErro.style.display = 'none';
+        if (equipamentosErro) {
+            if (equipamentosSelecionados.length === 0) {
+                equipamentosErro.style.display = 'block';
+            } else {
+                equipamentosErro.style.display = 'none';
+            }
         }
         
         // Verificar se todos os campos obrigatórios estão preenchidos
