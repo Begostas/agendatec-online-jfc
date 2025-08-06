@@ -4,7 +4,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Configuração do Supabase
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
