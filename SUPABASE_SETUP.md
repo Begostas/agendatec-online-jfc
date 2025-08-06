@@ -12,15 +12,40 @@
    - **Region**: Escolha a região mais próxima (ex: South America)
 6. Clique em "Create new project"
 
-## Passo 2: Configurar o Banco de Dados
+## 2. Configurar o Banco de Dados
+
+⚠️ **ATENÇÃO: Use APENAS o arquivo `supabase-schema.sql`**
 
 1. No painel do Supabase, vá para **SQL Editor**
-2. Execute o script `supabase-schema.sql` que está na raiz do projeto
-3. Isso criará:
+2. **COPIE APENAS** o conteúdo do arquivo `supabase-schema.sql` (NÃO o `supabase-config.js`)
+3. Cole no SQL Editor e clique em **Run**
+4. Isso criará:
    - Tabela `agendamentos` com todas as colunas necessárias
    - Índices para melhor performance
    - Políticas RLS para acesso público
    - Dados de exemplo (opcional)
+
+**❌ ERRO COMUM:** 
+Se você receber erro "syntax error at or near '//'", significa que copiou o arquivo JavaScript errado. Use apenas o arquivo `.sql`!
+
+### Arquivo Correto para Copiar:
+```sql
+-- Schema para o banco de dados Supabase
+-- Execute este script no SQL Editor do Supabase
+
+-- Criar tabela de agendamentos
+CREATE TABLE IF NOT EXISTS agendamentos (
+    id BIGSERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    ...
+```
+
+### ❌ NÃO Copie Este (JavaScript):
+```javascript
+// Configuração do Supabase  ← ERRO!
+class SupabaseConfig {
+    ...
+```
 
 **Importante:** O schema foi atualizado para usar nomes de colunas consistentes:
 - `horaInicio` (em camelCase) em vez de `hora_inicio`
