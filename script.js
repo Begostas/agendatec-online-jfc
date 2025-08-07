@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarAgendamentos();
     popularHorarios();
     
+    // Definir data mínima como hoje para impedir seleção de datas passadas
+    const dataInput = document.getElementById('data');
+    const hoje = new Date();
+    const dataMinima = hoje.toISOString().split('T')[0];
+    dataInput.min = dataMinima;
+    
     // Limpar opções de hora de término inicialmente (manter apenas a opção padrão)
     const horaFimSelect = document.getElementById('hora-fim');
     horaFimSelect.innerHTML = '<option value="">Selecione primeiro a hora de início</option>';
