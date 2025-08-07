@@ -254,6 +254,7 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos) {
 // 3️⃣ Evento de envio do formulário
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log('Formulário enviado - iniciando processo de agendamento');
 
     // Coleta dados do formulário
     const nome = form.nome.value.trim();
@@ -265,15 +266,23 @@ form.addEventListener('submit', async (e) => {
     const horaFim = form['hora-fim'].value;
     const mensagem = form.mensagem.value.trim();
 
+    console.log('Dados coletados:', { nome, turma, contato, equipamentos, data, horaInicio, horaFim, mensagem });
+
     if (equipamentos.length === 0) {
         alert("Selecione ao menos um equipamento!");
+        console.log('Erro: Nenhum equipamento selecionado');
         return;
     }
 
+    console.log('Verificando conflitos...');
     // Verifica conflito antes de inserir
     const temConflito = await verificarConflito(data, horaInicio, horaFim, equipamentos);
-    if (temConflito) return;
+    if (temConflito) {
+        console.log('Conflito detectado, agendamento cancelado');
+        return;
+    }
 
+    console.log('Nenhum conflito encontrado, inserindo no Supabase...');
     // Insere no Supabase
     const { error } = await supabaseClient
         .from('agendamentos')
@@ -289,10 +298,12 @@ form.addEventListener('submit', async (e) => {
         }]);
 
     if (error) {
+        console.error('Erro ao inserir no Supabase:', error);
         alert("Erro ao salvar: " + error.message);
         return;
     }
 
+    console.log('Agendamento salvo com sucesso!');
     alert("Agendamento realizado com sucesso!");
     form.reset();
     carregarAgendamentos();
