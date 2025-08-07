@@ -274,6 +274,16 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
+    // Verificar se a data não é sábado ou domingo
+    const dataSelecionada = new Date(data + 'T00:00:00');
+    const diaSemana = dataSelecionada.getDay(); // 0 = domingo, 6 = sábado
+    
+    if (diaSemana === 0 || diaSemana === 6) {
+        alert('Agendamentos não são permitidos aos sábados e domingos. Por favor, selecione um dia útil.');
+        console.log('Erro: Tentativa de agendamento em fim de semana');
+        return;
+    }
+
     console.log('Verificando conflitos...');
     // Verifica conflito antes de inserir
     const temConflito = await verificarConflito(data, horaInicio, horaFim, equipamentos);
