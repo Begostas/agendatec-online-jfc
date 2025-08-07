@@ -195,13 +195,17 @@ async function carregarAgendamentos() {
 
     tabelaBody.innerHTML = '';
     data.forEach(ag => {
+        // Formatar horários para exibir apenas hora:minuto (sem segundos)
+        const horaInicioFormatada = ag.horaInicio.substring(0, 5);
+        const horaFimFormatada = ag.horaFim.substring(0, 5);
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${ag.nome}</td>
             <td>${ag.turma}</td>
             <td>${ag.equipamentos.join(', ')}</td>
             <td>${new Date(ag.data).toLocaleDateString('pt-BR')}</td>
-            <td>${ag.horaInicio} - ${ag.horaFim}</td>
+            <td>${horaInicioFormatada} - ${horaFimFormatada}</td>
             <td>${ag.mensagem || ''}</td>
         `;
         tabelaBody.appendChild(tr);
