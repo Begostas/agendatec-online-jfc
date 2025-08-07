@@ -8,20 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAgendar.disabled = false;
     carregarAgendamentos();
     popularHorarios();
-    
-    // Definir data mínima como hoje para impedir seleção de datas passadas
+
     const dataInput = document.getElementById('data');
     const hoje = new Date();
     const dataMinima = hoje.toISOString().split('T')[0];
     dataInput.min = dataMinima;
-    
-    // Limpar opções de hora de término inicialmente (manter apenas a opção padrão)
+
     const horaFimSelect = document.getElementById('hora-fim');
     horaFimSelect.innerHTML = '<option value="">Selecione primeiro a hora de início</option>';
-    
-    // Adicionar evento para atualizar hora de término quando hora de início for selecionada
+
     const horaInicioSelect = document.getElementById('hora-inicio');
-    horaInicioSelect.addEventListener('change', function() {
+    horaInicioSelect.addEventListener('change', function () {
         if (this.value) {
             atualizarHorariosFim(this.value);
         } else {
@@ -29,155 +26,90 @@ document.addEventListener('DOMContentLoaded', () => {
             horaFimSelect.value = '';
         }
     });
-    
-    // Adicionar funcionalidade de seleção exclusiva para lousas
+
     const lousaCheckboxes = document.querySelectorAll('.lousa-checkbox');
     lousaCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
+        checkbox.addEventListener('change', function () {
             if (this.checked) {
-                // Desmarcar todas as outras lousas quando uma for selecionada
-                lousaCheckboxes.forEach(otherCheckbox => {
-                    if (otherCheckbox !== this) {
-                        otherCheckbox.checked = false;
-                    }
+                lousaCheckboxes.forEach(other => {
+                    if (other !== this) other.checked = false;
                 });
             }
         });
     });
 });
 
-// -------------------- FUNÇÕES -------------------- //
-
-// Função para popular os horários nos campos select
+// Função para popular os horários
 function popularHorarios() {
     const horaInicioSelect = document.getElementById('hora-inicio');
     const horaFimSelect = document.getElementById('hora-fim');
-    
-    // Limpar opções existentes (exceto a primeira)
+
     horaInicioSelect.innerHTML = '<option value="">Selecione o horário</option>';
     horaFimSelect.innerHTML = '<option value="">Selecione o horário</option>';
-    
-    // Horários da manhã: 7:00 até 10:30 (intervalos de 30 minutos)
+
     for (let hora = 7; hora <= 10; hora++) {
         for (let minuto = 0; minuto < 60; minuto += 30) {
-            if (hora === 10 && minuto > 30) break; // Para em 10:30
-            const horarioFormatado = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
-            
-            // Adicionar ao horário de início
-            const optionInicio = document.createElement('option');
-            optionInicio.value = horarioFormatado;
-            optionInicio.textContent = horarioFormatado;
-            horaInicioSelect.appendChild(optionInicio);
-            
-            // Adicionar ao horário de fim (exceto 7:00)
-            if (horarioFormatado !== '07:00') {
-                const optionFim = document.createElement('option');
-                optionFim.value = horarioFormatado;
-                optionFim.textContent = horarioFormatado;
-                horaFimSelect.appendChild(optionFim);
+            if (hora === 10 && minuto > 30) break;
+            const h = hora.toString().padStart(2, '0');
+            const m = minuto.toString().padStart(2, '0');
+            const horario = `${h}:${m}`;
+            horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
+            if (horario !== '07:00') {
+                horaFimSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
             }
         }
     }
-    
-    // Separador visual para horário de início (entre 10:30 e 13:00)
-    const separadorInicio = document.createElement('option');
-    separadorInicio.value = '';
-    separadorInicio.textContent = '------- Intervalo -------';
-    separadorInicio.disabled = true;
-    horaInicioSelect.appendChild(separadorInicio);
-    
-    // Adicionar 11:00 ao horário de fim (antes do separador)
-    const option11 = document.createElement('option');
-    option11.value = '11:00';
-    option11.textContent = '11:00';
-    horaFimSelect.appendChild(option11);
-    
-    // Separador visual para horário de fim (entre 11:00 e 13:30)
-    const separadorFim = document.createElement('option');
-    separadorFim.value = '';
-    separadorFim.textContent = '------- Intervalo -------';
-    separadorFim.disabled = true;
-    horaFimSelect.appendChild(separadorFim);
-    
-    // Horários da tarde: 13:00 até 16:30 (intervalos de 30 minutos)
+
+    horaFimSelect.innerHTML += `<option disabled>------- Intervalo -------</option>`;
+    horaFimSelect.innerHTML += `<option value="11:00">11:00</option>`;
+
+    horaInicioSelect.innerHTML += `<option disabled>------- Intervalo -------</option>`;
+
     for (let hora = 13; hora <= 16; hora++) {
         for (let minuto = 0; minuto < 60; minuto += 30) {
-            if (hora === 16 && minuto > 30) break; // Para em 16:30
-            const horarioFormatado = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
-            
-            // Adicionar ao horário de início
-            const optionInicio = document.createElement('option');
-            optionInicio.value = horarioFormatado;
-            optionInicio.textContent = horarioFormatado;
-            horaInicioSelect.appendChild(optionInicio);
-            
-            // Adicionar ao horário de fim (exceto 13:00, começar em 13:30)
-            if (horarioFormatado !== '13:00') {
-                const optionFim = document.createElement('option');
-                optionFim.value = horarioFormatado;
-                optionFim.textContent = horarioFormatado;
-                horaFimSelect.appendChild(optionFim);
+            if (hora === 16 && minuto > 30) break;
+            const h = hora.toString().padStart(2, '0');
+            const m = minuto.toString().padStart(2, '0');
+            const horario = `${h}:${m}`;
+            horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
+            if (horario !== '13:00') {
+                horaFimSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
             }
-         }
-     }
-     
-     // Adicionar 17:00 ao horário de fim (após os horários da tarde)
-     const option17 = document.createElement('option');
-     option17.value = '17:00';
-     option17.textContent = '17:00';
-     horaFimSelect.appendChild(option17);
- }
+        }
+    }
 
-// Função para atualizar horários de fim baseado na hora de início (máximo 2 horas)
+    horaFimSelect.innerHTML += `<option value="17:00">17:00</option>`;
+}
+
+// Atualizar hora fim com limite de 2 horas
 function atualizarHorariosFim(horaInicio) {
     const horaFimSelect = document.getElementById('hora-fim');
     horaFimSelect.innerHTML = '<option value="">Selecione o horário</option>';
-    
-    // Converter hora de início para minutos
-    const [horaIni, minIni] = horaInicio.split(':').map(Number);
-    const minutosInicio = horaIni * 60 + minIni;
-    
-    // Calcular limite máximo (2 horas = 120 minutos)
-    const minutosLimite = minutosInicio + 120;
-    
-    // Lista de todos os horários possíveis
-    const todosHorarios = [];
-    
-    // Horários da manhã: 7:30 até 11:00
-    for (let hora = 7; hora <= 11; hora++) {
-        for (let minuto = (hora === 7 ? 30 : 0); minuto < 60; minuto += 30) {
-            if (hora === 11 && minuto > 0) break;
-            todosHorarios.push(`${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`);
+
+    const [hIni, mIni] = horaInicio.split(':').map(Number);
+    const inicioMin = hIni * 60 + mIni;
+    const limite = inicioMin + 120;
+
+    const horarios = [];
+
+    for (let h = 7; h <= 11; h++) {
+        for (let m = (h === 7 ? 30 : 0); m < 60; m += 30) {
+            if (h === 11 && m > 0) break;
+            horarios.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
         }
     }
-    
-    // Horários da tarde: 13:30 até 17:00
-    for (let hora = 13; hora <= 17; hora++) {
-        for (let minuto = (hora === 13 ? 30 : 0); minuto < 60; minuto += 30) {
-            if (hora === 17 && minuto > 0) break;
-            todosHorarios.push(`${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`);
+
+    for (let h = 13; h <= 17; h++) {
+        for (let m = (h === 13 ? 30 : 0); m < 60; m += 30) {
+            if (h === 17 && m > 0) break;
+            horarios.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
         }
     }
-    
-    let adicionouSeparador = false;
-    
-    // Filtrar horários válidos (após hora de início e dentro do limite de 2 horas)
-    todosHorarios.forEach(horario => {
-        const [hora, min] = horario.split(':').map(Number);
-        const minutosHorario = hora * 60 + min;
-        
-        // Verificar se está após a hora de início e dentro do limite
-        if (minutosHorario > minutosInicio && minutosHorario <= minutosLimite) {
-            // Adicionar separador se necessário (entre manhã e tarde)
-            if (!adicionouSeparador && hora >= 13) {
-                const separador = document.createElement('option');
-                separador.value = '';
-                separador.textContent = '------- Intervalo -------';
-                separador.disabled = true;
-                horaFimSelect.appendChild(separador);
-                adicionouSeparador = true;
-            }
-            
+
+    horarios.forEach(horario => {
+        const [h, m] = horario.split(':').map(Number);
+        const min = h * 60 + m;
+        if (min > inicioMin && min <= limite) {
             const option = document.createElement('option');
             option.value = horario;
             option.textContent = horario;
@@ -186,8 +118,18 @@ function atualizarHorariosFim(horaInicio) {
     });
 }
 
-// 1️⃣ Carrega agendamentos do Supabase e preenche a tabela
+// Carrega agendamentos e remove os com +15 dias
 async function carregarAgendamentos() {
+    const hoje = new Date();
+    const quinzeDiasAtras = new Date(hoje);
+    quinzeDiasAtras.setDate(hoje.getDate() - 15);
+    const limiteISO = quinzeDiasAtras.toISOString().split('T')[0];
+
+    await supabaseClient
+        .from('agendamentos')
+        .delete()
+        .lt('data', limiteISO);
+
     const { data, error } = await supabaseClient
         .from('agendamentos')
         .select('*')
@@ -201,24 +143,26 @@ async function carregarAgendamentos() {
 
     tabelaBody.innerHTML = '';
     data.forEach(ag => {
-        // Formatar horários para exibir apenas hora:minuto (sem segundos)
-        const horaInicioFormatada = ag.horaInicio.substring(0, 5);
-        const horaFimFormatada = ag.horaFim.substring(0, 5);
-        
+        const horaInicio = ag.horaInicio.substring(0, 5);
+        const horaFim = ag.horaFim.substring(0, 5);
+        // Corrigir problema de fuso horário na exibição da data
+        const [ano, mes, dia] = ag.data.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${ag.nome}</td>
             <td>${ag.turma}</td>
             <td>${ag.equipamentos.join(', ')}</td>
-            <td>${new Date(ag.data).toLocaleDateString('pt-BR')}</td>
-            <td>${horaInicioFormatada} - ${horaFimFormatada}</td>
+            <td>${dataFormatada}</td>
+            <td>${horaInicio} - ${horaFim}</td>
             <td>${ag.mensagem || ''}</td>
         `;
         tabelaBody.appendChild(tr);
     });
 }
 
-// 2️⃣ Verifica conflito de horários para o mesmo equipamento
+// Verifica conflito
 async function verificarConflito(data, horaInicio, horaFim, equipamentos) {
     const { data: agendamentos, error } = await supabaseClient
         .from('agendamentos')
@@ -227,23 +171,21 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos) {
 
     if (error) {
         console.error("Erro ao verificar conflitos:", error.message);
-        return true; // Em caso de erro, impede o agendamento
+        return true;
     }
 
-    // Verifica se algum equipamento do novo agendamento já está ocupado no horário
     for (const ag of agendamentos) {
-        const inicioExistente = ag.horaInicio;
-        const fimExistente = ag.horaFim;
+        const i = ag.horaInicio;
+        const f = ag.horaFim;
+        const conflitoHorario =
+            (horaInicio >= i && horaInicio < f) ||
+            (horaFim > i && horaFim <= f) ||
+            (horaInicio <= i && horaFim >= f);
 
-        const conflitouHorario =
-            (horaInicio >= inicioExistente && horaInicio < fimExistente) ||
-            (horaFim > inicioExistente && horaFim <= fimExistente) ||
-            (horaInicio <= inicioExistente && horaFim >= fimExistente);
+        const conflitoEquip = ag.equipamentos.some(eq => equipamentos.includes(eq));
 
-        const compartilhaEquipamento = ag.equipamentos.some(eq => equipamentos.includes(eq));
-
-        if (conflitouHorario && compartilhaEquipamento) {
-            alert(`Conflito detectado! O equipamento ${ag.equipamentos.join(', ')} já está agendado nesse horário.`);
+        if (conflitoHorario && conflitoEquip) {
+            alert(`Conflito: O equipamento ${ag.equipamentos.join(', ')} já está agendado neste horário.`);
             return true;
         }
     }
@@ -251,12 +193,10 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos) {
     return false;
 }
 
-// 3️⃣ Evento de envio do formulário
+// Envio do formulário
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log('Formulário enviado - iniciando processo de agendamento');
 
-    // Coleta dados do formulário
     const nome = form.nome.value.trim();
     const turma = form.turma.value.trim();
     const contato = form.contato.value.trim();
@@ -266,34 +206,25 @@ form.addEventListener('submit', async (e) => {
     const horaFim = form['hora-fim'].value;
     const mensagem = form.mensagem.value.trim();
 
-    console.log('Dados coletados:', { nome, turma, contato, equipamentos, data, horaInicio, horaFim, mensagem });
-
     if (equipamentos.length === 0) {
-        alert("Selecione ao menos um equipamento!");
-        console.log('Erro: Nenhum equipamento selecionado');
+        alert("Selecione ao menos um equipamento.");
         return;
     }
 
     // Verificar se a data não é sábado ou domingo
-    const dataSelecionada = new Date(data + 'T00:00:00');
+    // Usar split para evitar problemas de fuso horário
+    const [ano, mes, dia] = data.split('-').map(Number);
+    const dataSelecionada = new Date(ano, mes - 1, dia); // mes - 1 porque Date usa 0-11 para meses
     const diaSemana = dataSelecionada.getDay(); // 0 = domingo, 6 = sábado
     
     if (diaSemana === 0 || diaSemana === 6) {
         alert('Agendamentos não são permitidos aos sábados e domingos. Por favor, selecione um dia útil.');
-        console.log('Erro: Tentativa de agendamento em fim de semana');
         return;
     }
 
-    console.log('Verificando conflitos...');
-    // Verifica conflito antes de inserir
-    const temConflito = await verificarConflito(data, horaInicio, horaFim, equipamentos);
-    if (temConflito) {
-        console.log('Conflito detectado, agendamento cancelado');
-        return;
-    }
+    const conflito = await verificarConflito(data, horaInicio, horaFim, equipamentos);
+    if (conflito) return;
 
-    console.log('Nenhum conflito encontrado, inserindo no Supabase...');
-    // Insere no Supabase
     const { error } = await supabaseClient
         .from('agendamentos')
         .insert([{
@@ -308,12 +239,10 @@ form.addEventListener('submit', async (e) => {
         }]);
 
     if (error) {
-        console.error('Erro ao inserir no Supabase:', error);
         alert("Erro ao salvar: " + error.message);
         return;
     }
 
-    console.log('Agendamento salvo com sucesso!');
     alert("Agendamento realizado com sucesso!");
     form.reset();
     carregarAgendamentos();
