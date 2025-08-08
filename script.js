@@ -163,7 +163,7 @@ async function carregarAgendamentos() {
 }
 
 // Verifica conflito
-async function verificarConflito(data, horaInicio, horaFim, equipamentos) {
+async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma) {
     const { data: agendamentos, error } = await supabaseClient
         .from('agendamentos')
         .select('*')
@@ -182,11 +182,19 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos) {
             (horaFim > i && horaFim <= f) ||
             (horaInicio <= i && horaFim >= f);
 
-        const conflitoEquip = ag.equipamentos.some(eq => equipamentos.includes(eq));
+        if (conflitoHorario) {
+            // Verificar conflito de equipamentos
+            const conflitoEquip = ag.equipamentos.some(eq => equipamentos.includes(eq));
+            if (conflitoEquip) {
+                alert(`Conflito: O equipamento ${ag.equipamentos.join(', ')} já está agendado neste horário.`);
+                return true;
+            }
 
-        if (conflitoHorario && conflitoEquip) {
-            alert(`Conflito: O equipamento ${ag.equipamentos.join(', ')} já está agendado neste horário.`);
-            return true;
+            // Verificar conflito de turma
+            if (ag.turma === turma) {
+                alert('Já há um agendamento para esse horário. Por favor cheque a lista de agendamentos.');
+                return true;
+            }
         }
     }
 
@@ -222,7 +230,7 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    const conflito = await verificarConflito(data, horaInicio, horaFim, equipamentos);
+    const conflito = await verificarConflito(data, horaInicio, horaFim, equipamentos, turma);
     if (conflito) return;
 
     const { error } = await supabaseClient
