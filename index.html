@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -25,7 +27,7 @@
                             <input type="text" id="nome" name="nome" required>
                         </div>
                         <div class="form-group">
-                            <label for="contato">Dados para contato (e-mail ou telefone)</label>
+                            <label for="contato">Dados para contato</label>
                             <input type="text" id="contato" name="contato">
                         </div>
                     </div>
@@ -52,49 +54,29 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="equipamentos">Equipamentos* (Selecione um ou mais)</label>
+                            <label for="equipamentos">Equipamentos*</label>
                             <div class="checkbox-group" id="equipamentos-container">
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="equip-sala" name="equipamentos" value="Sala de Informática">
-                                    <label for="equip-sala">Sala de Informática</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="equip-lousa1" name="equipamentos" value="Lousa 1" class="lousa-checkbox">
-                                    <label for="equip-lousa1">Lousa 1</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="equip-lousa2" name="equipamentos" value="Lousa 2" class="lousa-checkbox">
-                                    <label for="equip-lousa2">Lousa 2</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="equip-caixa" name="equipamentos" value="Caixa de som">
-                                    <label for="equip-caixa">Caixa de som</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="equip-microfone" name="equipamentos" value="Microfone">
-                                    <label for="equip-microfone">Microfone</label>
-                                </div>
+                                <div><input type="checkbox" id="equip-sala" name="equipamentos" value="Sala de Informática"><label for="equip-sala">Sala de Informática</label></div>
+                                <div><input type="checkbox" id="equip-lousa1" name="equipamentos" value="Lousa 1"><label for="equip-lousa1">Lousa 1</label></div>
+                                <div><input type="checkbox" id="equip-lousa2" name="equipamentos" value="Lousa 2"><label for="equip-lousa2">Lousa 2</label></div>
+                                <div><input type="checkbox" id="equip-caixa" name="equipamentos" value="Caixa de som"><label for="equip-caixa">Caixa de som</label></div>
+                                <div><input type="checkbox" id="equip-microfone" name="equipamentos" value="Microfone"><label for="equip-microfone">Microfone</label></div>
                             </div>
-                            <div class="error-message" id="equipamentos-erro" style="display: none;">Selecione pelo menos um equipamento</div>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="data">Data do agendamento*</label>
-                            <input type="date" id="data" name="data" lang="pt-BR" required>
+                            <input type="date" id="data" name="data" required>
                         </div>
                         <div class="form-group">
                             <label for="hora-inicio">Hora de início*</label>
-                            <select id="hora-inicio" name="hora-inicio" required>
-                                <option value="">Selecione o horário</option>
-                            </select>
+                            <input type="time" id="hora-inicio" name="hora-inicio" required>
                         </div>
                         <div class="form-group">
                             <label for="hora-fim">Hora de término*</label>
-                            <select id="hora-fim" name="hora-fim" required>
-                                <option value="">Selecione o horário</option>
-                            </select>
+                            <input type="time" id="hora-fim" name="hora-fim" required>
                         </div>
                     </div>
 
@@ -104,27 +86,56 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" id="btn-agendar" disabled>Registrar Agendamento</button>
+                        <button type="submit" id="btn-agendar">Registrar Agendamento</button>
                     </div>
                 </form>
             </section>
 
             <section class="agendamentos-container">
-                <h2>Agendamentos Realizados</h2>
+                <h2>Agendamentos Futuros</h2>
                 <div class="table-container">
                     <table id="tabela-agendamentos">
                         <thead>
                             <tr>
                                 <th>Nome</th>
                                 <th>Turma</th>
-                                <th>Equipamento</th>
+                                <th>Equipamentos</th>
                                 <th>Data</th>
                                 <th>Horário</th>
                                 <th>Mensagem</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Agendamentos serão inseridos aqui via JavaScript -->
+                            <!-- Conteúdo dinâmico com JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="historico-container">
+                <h2>Histórico de Agendamentos</h2>
+                <div class="historico-actions">
+                    <button id="btn-carregar-historico" class="btn-secondary">
+                        <i class="fas fa-history"></i> Carregar Histórico
+                    </button>
+                    <button id="btn-baixar-pdf" class="btn-secondary" style="display: none;">
+                        <i class="fas fa-download"></i> Baixar PDF
+                    </button>
+                </div>
+                <div class="table-container" id="historico-table-container" style="display: none;">
+                    <table id="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Turma</th>
+                                <th>Equipamentos</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Mensagem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Conteúdo dinâmico com JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -132,7 +143,7 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 Sistema de Agendamento Escolar | Desenvolvido para Escola Municipal Júlio Fernandes Colino</p>
+            <p>&copy; 2025 Sistema de Agendamento Escolar | Escola Júlio Fernandes Colino</p>
         </footer>
     </div>
 
