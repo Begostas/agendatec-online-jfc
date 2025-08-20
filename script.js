@@ -129,7 +129,7 @@ async function moverParaHistorico() {
     const { data: agendamentosAntigos, error: errorSelect } = await supabaseClient
         .from('agendamentos')
         .select('*')
-        .lt('data', hoje.toISOString().split('T')[0]);
+        .lt('"data"', hoje.toISOString().split('T')[0]);
 
     if (errorSelect) {
         console.error("Erro ao buscar agendamentos antigos:", errorSelect.message);
@@ -145,9 +145,9 @@ async function moverParaHistorico() {
                 turma: ag.turma,
                 contato: ag.contato,
                 equipamentos: ag.equipamentos,
-                data: ag.data,
-                horaInicio: ag.horaInicio,
-                horaFim: ag.horaFim,
+                "data": ag.data,
+                "horaInicio": ag.horaInicio,
+                "horaFim": ag.horaFim,
                 mensagem: ag.mensagem,
                 timestamp: ag.timestamp,
                 created_at: ag.created_at
@@ -162,7 +162,7 @@ async function moverParaHistorico() {
         await supabaseClient
             .from('agendamentos')
             .delete()
-            .lt('data', hoje.toISOString().split('T')[0]);
+            .lt('"data"', hoje.toISOString().split('T')[0]);
     }
 }
 
@@ -177,9 +177,9 @@ async function carregarAgendamentos() {
     const { data, error } = await supabaseClient
         .from('agendamentos')
         .select('*')
-        .gte('data', hojeISO)
-        .order('data', { ascending: true })
-        .order('horaInicio', { ascending: true });
+        .gte('"data"', hojeISO)
+        .order('"data"', { ascending: true })
+        .order('"horaInicio"', { ascending: true });
 
     if (error) {
         console.error("Erro ao carregar agendamentos:", error.message);
@@ -212,7 +212,7 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma)
     const { data: agendamentos, error } = await supabaseClient
         .from('agendamentos')
         .select('*')
-        .eq('data', data);
+        .eq('"data"', data);
 
     if (error) {
         console.error("Erro ao verificar conflitos:", error.message);
@@ -318,8 +318,8 @@ async function carregarHistorico() {
         const { data, error } = await supabaseClient
             .from('historico_agendamentos')
             .select('*')
-            .order('data', { ascending: false })
-            .order('horaInicio', { ascending: false });
+            .order('"data"', { ascending: false })
+            .order('"horaInicio"', { ascending: false });
 
         if (error) {
             console.error("Erro ao carregar histórico:", error.message);
