@@ -56,11 +56,26 @@
                         <div class="form-group">
                             <label for="equipamentos">Equipamentos*</label>
                             <div class="checkbox-group" id="equipamentos-container">
-                                <div><input type="checkbox" id="equip-sala" name="equipamentos" value="Sala de Informática"><label for="equip-sala">Sala de Informática</label></div>
-                                <div><input type="checkbox" id="equip-lousa1" name="equipamentos" value="Lousa 1"><label for="equip-lousa1">Lousa 1</label></div>
-                                <div><input type="checkbox" id="equip-lousa2" name="equipamentos" value="Lousa 2"><label for="equip-lousa2">Lousa 2</label></div>
-                                <div><input type="checkbox" id="equip-caixa" name="equipamentos" value="Caixa de som"><label for="equip-caixa">Caixa de som</label></div>
-                                <div><input type="checkbox" id="equip-microfone" name="equipamentos" value="Microfone"><label for="equip-microfone">Microfone</label></div>
+                                <div class="checkbox-item" data-value="Sala de Informática">
+                                    <input type="checkbox" id="equip-sala" name="equipamentos" value="Sala de Informática">
+                                    <label for="equip-sala">Sala de Informática</label>
+                                </div>
+                                <div class="checkbox-item" data-value="Lousa 1">
+                                    <input type="checkbox" id="equip-lousa1" name="equipamentos" value="Lousa 1" class="lousa-checkbox">
+                                    <label for="equip-lousa1">Lousa 1</label>
+                                </div>
+                                <div class="checkbox-item" data-value="Lousa 2">
+                                    <input type="checkbox" id="equip-lousa2" name="equipamentos" value="Lousa 2" class="lousa-checkbox">
+                                    <label for="equip-lousa2">Lousa 2</label>
+                                </div>
+                                <div class="checkbox-item" data-value="Caixa de som">
+                                    <input type="checkbox" id="equip-caixa" name="equipamentos" value="Caixa de som">
+                                    <label for="equip-caixa">Caixa de som</label>
+                                </div>
+                                <div class="checkbox-item" data-value="Microfone">
+                                    <input type="checkbox" id="equip-microfone" name="equipamentos" value="Microfone">
+                                    <label for="equip-microfone">Microfone</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -72,11 +87,15 @@
                         </div>
                         <div class="form-group">
                             <label for="hora-inicio">Hora de início*</label>
-                            <input type="time" id="hora-inicio" name="hora-inicio" required>
+                            <select id="hora-inicio" name="hora-inicio" required>
+                                <option value="">Selecione o horário</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="hora-fim">Hora de término*</label>
-                            <input type="time" id="hora-fim" name="hora-fim" required>
+                            <select id="hora-fim" name="hora-fim" required>
+                                <option value="">Selecione primeiro a hora de início</option>
+                            </select>
                         </div>
                     </div>
 

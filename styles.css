@@ -116,24 +116,44 @@ label {
 }
 
 .checkbox-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
     margin-bottom: 10px;
 }
 
 .checkbox-item {
+    position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
     background-color: #2a2a2a;
-    padding: 8px 12px;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-    transition: background-color 0.3s;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 60px;
+    text-align: center;
 }
 
 .checkbox-item:hover {
     background-color: #3a3a3a;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.2);
+}
+
+.checkbox-item.selected {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+}
+
+.checkbox-item.selected:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
 }
 
 .checkbox-item input:disabled {
@@ -149,17 +169,55 @@ label {
 
 .checkbox-item:has(input:disabled):hover {
     background-color: #1a1a1a;
+    transform: none;
+    box-shadow: none;
 }
 
 .checkbox-item input[type="checkbox"] {
-    width: auto;
-    margin-right: 8px;
-    cursor: pointer;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
 }
 
 .checkbox-item label {
     margin-bottom: 0;
     cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+    width: 100%;
+}
+
+.checkbox-item.selected label {
+    color: white;
+    font-weight: 600;
+}
+
+.checkbox-item::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.checkbox-item.selected::before {
+    background-color: white;
+    border-color: white;
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 12px;
 }
 
 input, select, textarea {
