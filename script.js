@@ -315,7 +315,7 @@ async function carregarAgendamentos() {
 }
 
 // Verifica conflito
-async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma) {
+async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma, nome) {
     const { data: agendamentos, error } = await supabaseClient
         .from('agendamentos')
         .select('*')
@@ -327,6 +327,15 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma)
     }
 
     for (const ag of agendamentos) {
+        // Verificar agendamento duplicado (mesmo professor, turma, equipamentos, data e horário)
+        const equipamentosIguais = JSON.stringify(ag.equipamentos.sort()) === JSON.stringify(equipamentos.sort());
+        const horarioIgual = ag.horaInicio === horaInicio && ag.horaFim === horaFim;
+        
+        if (ag.nome === nome && ag.turma === turma && equipamentosIguais && horarioIgual) {
+            alert('Agendamento não realizado, por favor cheque a lista de agendamentos.');
+            return true;
+        }
+
         const i = ag.horaInicio;
         const f = ag.horaFim;
         const conflitoHorario =
@@ -429,7 +438,7 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    const conflito = await verificarConflito(data, horaInicio, horaFim, equipamentos, turma);
+    const conflito = await verificarConflito(data, horaInicio, horaFim, equipamentos, turma, nome);
     if (conflito) return;
 
     const { error } = await supabaseClient
