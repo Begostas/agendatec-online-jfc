@@ -450,10 +450,70 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
+    // Enviar notificação por e-mail
+    await enviarNotificacaoEmail({
+        nome,
+        turma,
+        contato,
+        equipamentos,
+        data,
+        horaInicio,
+        horaFim,
+        mensagem
+    });
+
     alert("Agendamento realizado com sucesso!");
     form.reset();
     carregarAgendamentos();
 });
+
+// Função para enviar notificação por e-mail
+async function enviarNotificacaoEmail(dadosAgendamento) {
+    try {
+        // Verificar se as configurações do EmailJS estão disponíveis
+        if (typeof EMAILJS_CONFIG === 'undefined') {
+            console.log('Configurações do EmailJS não encontradas. E-mail não enviado.');
+            return;
+        }
+
+        // Usar configurações do arquivo emailjs-config.js
+        const { serviceID, templateID, publicKey } = EMAILJS_CONFIG;
+
+        // Formatar data para exibição
+        const [ano, mes, dia] = dadosAgendamento.data.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+        
+        // Formatar horários
+        const horaInicio = dadosAgendamento.horaInicio.substring(0, 5);
+        const horaFim = dadosAgendamento.horaFim.substring(0, 5);
+
+        // Parâmetros do template de e-mail
+        const templateParams = {
+            to_email: 'eric.benaglia@gmail.com',
+            from_name: 'Sistema de Agendamento - AgendaTec',
+            professor_nome: dadosAgendamento.nome,
+            professor_turma: dadosAgendamento.turma,
+            professor_contato: dadosAgendamento.contato,
+            equipamentos: dadosAgendamento.equipamentos.join(', '),
+            data_agendamento: dataFormatada,
+            horario_inicio: horaInicio,
+            horario_fim: horaFim,
+            mensagem: dadosAgendamento.mensagem || 'Nenhuma mensagem adicional',
+            timestamp: new Date().toLocaleString('pt-BR')
+        };
+
+        // Enviar e-mail usando EmailJS
+        if (typeof emailjs !== 'undefined') {
+            await emailjs.send(serviceID, templateID, templateParams, publicKey);
+            console.log('E-mail de notificação enviado com sucesso!');
+        } else {
+            console.log('EmailJS não está carregado. E-mail não enviado.');
+        }
+    } catch (error) {
+        console.error('Erro ao enviar e-mail de notificação:', error);
+        // Não interrompe o fluxo do agendamento se o e-mail falhar
+    }
+}
 
 // Variável global para armazenar dados do histórico
 let dadosHistorico = [];
