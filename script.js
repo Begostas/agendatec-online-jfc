@@ -316,50 +316,65 @@ async function carregarAgendamentos() {
 
 // Verifica conflito
 async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma, nome) {
-    const { data: agendamentos, error } = await supabaseClient
-        .from('agendamentos')
-        .select('*')
-        .eq('"data"', data);
+    try {
+        // Consulta otimizada: buscar apenas campos necessários
+        const { data: agendamentos, error } = await supabaseClient
+            .from('agendamentos')
+            .select('nome, turma, equipamentos, horaInicio, horaFim')
+            .eq('"data"', data);
 
-    if (error) {
-        console.error("Erro ao verificar conflitos:", error.message);
-        return true;
-    }
-
-    for (const ag of agendamentos) {
-        // Verificar agendamento duplicado (mesmo professor, turma, equipamentos, data e horário)
-        const equipamentosIguais = JSON.stringify(ag.equipamentos.sort()) === JSON.stringify(equipamentos.sort());
-        const horarioIgual = ag.horaInicio === horaInicio && ag.horaFim === horaFim;
-        
-        if (ag.nome === nome && ag.turma === turma && equipamentosIguais && horarioIgual) {
-            alert('Agendamento não realizado, por favor cheque a lista de agendamentos.');
+        if (error) {
+            console.error("Erro ao verificar conflitos:", error.message);
             return true;
         }
 
-        const i = ag.horaInicio;
-        const f = ag.horaFim;
-        const conflitoHorario =
-            (horaInicio >= i && horaInicio < f) ||
-            (horaFim > i && horaFim <= f) ||
-            (horaInicio <= i && horaFim >= f);
+        // Se não há agendamentos na data, não há conflito
+        if (!agendamentos || agendamentos.length === 0) {
+            return false;
+        }
 
-        if (conflitoHorario) {
-            // Verificar conflito de equipamentos
-            const conflitoEquip = ag.equipamentos.some(eq => equipamentos.includes(eq));
-            if (conflitoEquip) {
-                alert(`Conflito: O equipamento ${ag.equipamentos.join(', ')} já está agendado neste horário.`);
-                return true;
+        // Pré-processar equipamentos para comparação mais rápida
+        const equipamentosOrdenados = equipamentos.sort().join(',');
+
+        for (const ag of agendamentos) {
+            // Verificar agendamento duplicado primeiro (mais rápido)
+            if (ag.nome === nome && ag.turma === turma && 
+                ag.horaInicio === horaInicio && ag.horaFim === horaFim) {
+                
+                const agEquipamentosOrdenados = ag.equipamentos.sort().join(',');
+                if (agEquipamentosOrdenados === equipamentosOrdenados) {
+                    alert('Agendamento não realizado, por favor cheque a lista de agendamentos.');
+                    return true;
+                }
             }
 
-            // Verificar conflito de turma
-            if (ag.turma === turma) {
-                alert('Já há um agendamento para esse horário. Por favor cheque a lista de agendamentos.');
-                return true;
+            // Verificar conflito de horário
+            const conflitoHorario =
+                (horaInicio >= ag.horaInicio && horaInicio < ag.horaFim) ||
+                (horaFim > ag.horaInicio && horaFim <= ag.horaFim) ||
+                (horaInicio <= ag.horaInicio && horaFim >= ag.horaFim);
+
+            if (conflitoHorario) {
+                // Verificar conflito de equipamentos
+                const conflitoEquip = ag.equipamentos.some(eq => equipamentos.includes(eq));
+                if (conflitoEquip) {
+                    alert(`Conflito: O equipamento ${ag.equipamentos.join(', ')} já está agendado neste horário.`);
+                    return true;
+                }
+
+                // Verificar conflito de turma
+                if (ag.turma === turma) {
+                    alert('Já há um agendamento para esse horário. Por favor cheque a lista de agendamentos.');
+                    return true;
+                }
             }
         }
-    }
 
-    return false;
+        return false;
+    } catch (error) {
+        console.error("Erro inesperado ao verificar conflitos:", error);
+        return true; // Em caso de erro, bloquear agendamento por segurança
+    }
 }
 
 // Envio do formulário
@@ -459,8 +474,8 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Enviar notificação por e-mail
-    await enviarNotificacaoEmail({
+    // Enviar notificação por e-mail de forma assíncrona (não-bloqueante)
+    enviarNotificacaoEmail({
         nome,
         turma,
         contato,
@@ -469,6 +484,8 @@ form.addEventListener('submit', async (e) => {
         horaInicio,
         horaFim,
         mensagem
+    }).catch(error => {
+        console.error('Erro no envio de e-mail (não afeta o agendamento):', error);
     });
 
     alert("Agendamento realizado com sucesso!");
@@ -511,9 +528,14 @@ async function enviarNotificacaoEmail(dadosAgendamento) {
             timestamp: new Date().toLocaleString('pt-BR')
         };
 
-        // Enviar e-mail usando EmailJS
+        // Enviar e-mail usando EmailJS com timeout de 10 segundos
         if (typeof emailjs !== 'undefined') {
-            await emailjs.send(serviceID, templateID, templateParams, publicKey);
+            const emailPromise = emailjs.send(serviceID, templateID, templateParams, publicKey);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout no envio de e-mail')), 10000)
+            );
+            
+            await Promise.race([emailPromise, timeoutPromise]);
             console.log('E-mail de notificação enviado com sucesso!');
         } else {
             console.log('EmailJS não está carregado. E-mail não enviado.');
