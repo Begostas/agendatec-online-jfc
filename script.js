@@ -474,8 +474,8 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Enviar notificação por e-mail de forma assíncrona (não-bloqueante)
-    enviarNotificacaoEmail({
+    // Dados do agendamento para integração
+    const dadosAgendamento = {
         nome,
         turma,
         contato,
@@ -484,9 +484,35 @@ form.addEventListener('submit', async (e) => {
         horaInicio,
         horaFim,
         mensagem
-    }).catch(error => {
+    };
+
+    // Enviar notificação por e-mail de forma assíncrona (não-bloqueante)
+    enviarNotificacaoEmail(dadosAgendamento).catch(error => {
         console.error('Erro no envio de e-mail (não afeta o agendamento):', error);
     });
+
+    // Criar evento no Google Calendar de forma assíncrona (não-bloqueante)
+    console.log('🔍 Verificando se createGoogleCalendarEvent está disponível:', typeof createGoogleCalendarEvent);
+    console.log('🔍 Estado da autorização:', typeof isGoogleCalendarAuthorized !== 'undefined' ? isGoogleCalendarAuthorized : 'variável não definida');
+    
+    if (typeof createGoogleCalendarEvent === 'function') {
+        console.log('📅 Chamando createGoogleCalendarEvent com dados:', dadosAgendamento);
+        createGoogleCalendarEvent(dadosAgendamento).then(event => {
+            if (event) {
+                console.log('✅ Evento criado no Google Calendar:', event.htmlLink || event);
+                alert('✅ Evento criado no Google Calendar com sucesso!');
+            } else {
+                console.log('⚠️ createGoogleCalendarEvent retornou false ou null');
+                alert('⚠️ Não foi possível criar o evento no Google Calendar. Verifique se está conectado.');
+            }
+        }).catch(error => {
+            console.error('❌ Erro ao criar evento no Google Calendar:', error);
+            alert('❌ Erro ao criar evento no Google Calendar: ' + error.message);
+        });
+    } else {
+        console.error('❌ Função createGoogleCalendarEvent não está disponível');
+        alert('❌ Google Calendar não está configurado corretamente');
+    }
 
     alert("Agendamento realizado com sucesso!");
     form.reset();
@@ -495,12 +521,22 @@ form.addEventListener('submit', async (e) => {
 
 // Função para enviar notificação por e-mail
 async function enviarNotificacaoEmail(dadosAgendamento) {
+    console.log('🔄 Iniciando envio de e-mail...', dadosAgendamento);
+    
     try {
         // Verificar se as configurações do EmailJS estão disponíveis
         if (typeof EMAILJS_CONFIG === 'undefined') {
-            console.log('Configurações do EmailJS não encontradas. E-mail não enviado.');
+            console.error('❌ Configurações do EmailJS não encontradas!');
             return;
         }
+        console.log('✅ Configurações do EmailJS encontradas:', EMAILJS_CONFIG);
+
+        // Verificar se o EmailJS está carregado
+        if (typeof emailjs === 'undefined') {
+            console.error('❌ EmailJS não está carregado!');
+            return;
+        }
+        console.log('✅ EmailJS está carregado');
 
         // Usar configurações do arquivo emailjs-config.js
         const { serviceID, templateID, publicKey } = EMAILJS_CONFIG;
@@ -527,21 +563,22 @@ async function enviarNotificacaoEmail(dadosAgendamento) {
             mensagem: dadosAgendamento.mensagem || 'Nenhuma mensagem adicional',
             timestamp: new Date().toLocaleString('pt-BR')
         };
+        
+        console.log('📧 Parâmetros do e-mail:', templateParams);
 
         // Enviar e-mail usando EmailJS com timeout de 10 segundos
-        if (typeof emailjs !== 'undefined') {
-            const emailPromise = emailjs.send(serviceID, templateID, templateParams, publicKey);
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout no envio de e-mail')), 10000)
-            );
-            
-            await Promise.race([emailPromise, timeoutPromise]);
-            console.log('E-mail de notificação enviado com sucesso!');
-        } else {
-            console.log('EmailJS não está carregado. E-mail não enviado.');
-        }
+        console.log('📤 Enviando e-mail...');
+        const emailPromise = emailjs.send(serviceID, templateID, templateParams, publicKey);
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout no envio de e-mail')), 10000)
+        );
+        
+        const result = await Promise.race([emailPromise, timeoutPromise]);
+        console.log('✅ E-mail de notificação enviado com sucesso!', result);
+        
     } catch (error) {
-        console.error('Erro ao enviar e-mail de notificação:', error);
+        console.error('❌ Erro ao enviar e-mail de notificação:', error);
+        console.error('Detalhes do erro:', error.message, error.stack);
         // Não interrompe o fluxo do agendamento se o e-mail falhar
     }
 }
@@ -689,3 +726,28 @@ function gerarPDF() {
 // Event listeners para os botões do histórico
 document.getElementById('btn-carregar-historico').addEventListener('click', carregarHistorico);
 document.getElementById('btn-baixar-pdf').addEventListener('click', gerarPDF);
+
+// Event listeners para Google Calendar
+document.addEventListener('DOMContentLoaded', function() {
+    // Botão conectar Google Calendar
+    const btnConnect = document.getElementById('btn-connect-calendar');
+    if (btnConnect) {
+        btnConnect.addEventListener('click', function() {
+            if (typeof authorizeGoogleCalendar === 'function') {
+                authorizeGoogleCalendar();
+            } else {
+                alert('Google Calendar API não está configurada. Verifique as credenciais em google-calendar-config.js');
+            }
+        });
+    }
+    
+    // Botão desconectar Google Calendar
+    const btnDisconnect = document.getElementById('btn-disconnect-calendar');
+    if (btnDisconnect) {
+        btnDisconnect.addEventListener('click', function() {
+            if (typeof disconnectGoogleCalendar === 'function') {
+                disconnectGoogleCalendar();
+            }
+        });
+    }
+});

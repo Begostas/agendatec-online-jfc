@@ -15,10 +15,19 @@ const EMAILJS_CONFIG = {
 // Inicializar EmailJS quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof emailjs !== 'undefined') {
-        emailjs.init(EMAILJS_CONFIG.publicKey);
-        console.log('EmailJS inicializado com sucesso!');
+        try {
+            emailjs.init(EMAILJS_CONFIG.publicKey);
+            console.log('✅ EmailJS inicializado com sucesso!');
+            console.log('🔧 Configurações:', {
+                serviceID: EMAILJS_CONFIG.serviceID,
+                templateID: EMAILJS_CONFIG.templateID,
+                publicKey: EMAILJS_CONFIG.publicKey.substring(0, 8) + '...'
+            });
+        } catch (error) {
+            console.error('❌ Erro ao inicializar EmailJS:', error);
+        }
     } else {
-        console.error('EmailJS não foi carregado!');
+        console.error('❌ EmailJS não foi carregado!');
     }
 });
 

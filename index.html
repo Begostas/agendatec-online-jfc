@@ -108,6 +108,16 @@
                     <div class="form-actions">
                         <button type="submit" id="btn-agendar">Registrar Agendamento</button>
                     </div>
+                    
+                    <div class="google-calendar-section">
+                        <h3><i class="fab fa-google"></i> Integração com Google Calendar</h3>
+                        <p>Conecte seu Google Calendar para criar eventos automaticamente:</p>
+                        <div class="calendar-controls">
+                            <span class="calendar-status">Status: <span id="calendar-status" class="status-disconnected">Desconectado</span></span>
+                            <button type="button" id="btn-connect-calendar" class="btn-calendar">Conectar Google Calendar</button>
+                            <button type="button" id="btn-disconnect-calendar" class="btn-calendar" style="display: none;">Desconectar</button>
+                        </div>
+                    </div>
                 </form>
             </section>
 
@@ -169,6 +179,7 @@
 
     <script src="supabase-config.js"></script>
     <script src="emailjs-config.js"></script>
+    <script src="google-calendar-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
