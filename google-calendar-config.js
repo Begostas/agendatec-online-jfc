@@ -292,8 +292,22 @@ async function authorizeGoogleCalendar() {
     }
 }
 
-// Função para desconectar do Google Calendar
+// Função para desconectar do Google Calendar com proteção por senha
 function disconnectGoogleCalendar() {
+    console.log('🔐 Solicitando senha para desconexão...');
+    
+    // Solicitar senha de confirmação
+    const senha = prompt('🔐 Digite a senha de 5 dígitos para desconectar o Google Calendar:');
+    
+    // Verificar se a senha está correta
+    if (senha !== '25017') {
+        if (senha !== null) { // Se não cancelou o prompt
+            alert('❌ Senha incorreta! Desconexão cancelada.');
+        }
+        console.log('🔐 Desconexão cancelada - senha incorreta ou cancelada');
+        return;
+    }
+    
     try {
         console.log('🔌 Desconectando do Google Calendar...');
         
@@ -318,9 +332,11 @@ function disconnectGoogleCalendar() {
         
         updateGoogleCalendarUI();
         console.log('✅ Desconectado do Google Calendar');
+        alert('✅ Google Calendar desconectado com sucesso!');
         
     } catch (error) {
         console.error('❌ Erro ao desconectar:', error);
+        alert('Erro ao desconectar Google Calendar: ' + error.message);
     }
 }
 
