@@ -29,6 +29,52 @@ let gapi = null;
 let tokenClient = null;
 let accessToken = null;
 
+// Chaves para localStorage
+const STORAGE_KEYS = {
+    ACCESS_TOKEN: 'google_calendar_access_token',
+    TOKEN_EXPIRY: 'google_calendar_token_expiry',
+    REFRESH_TOKEN: 'google_calendar_refresh_token'
+};
+
+// Salvar token no localStorage
+function saveTokenToStorage(tokenResponse) {
+    const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenResponse.access_token);
+    localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, expiryTime.toString());
+    if (tokenResponse.refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenResponse.refresh_token);
+    }
+    console.log('🔐 Token salvo no localStorage');
+}
+
+// Carregar token do localStorage
+function loadTokenFromStorage() {
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    const expiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
+    
+    if (token && expiry) {
+        const expiryTime = parseInt(expiry);
+        if (Date.now() < expiryTime) {
+            accessToken = token;
+            isGoogleCalendarAuthorized = true;
+            console.log('🔐 Token carregado do localStorage');
+            return true;
+        } else {
+            console.log('🔐 Token expirado, removendo do localStorage');
+            clearTokenFromStorage();
+        }
+    }
+    return false;
+}
+
+// Limpar token do localStorage
+function clearTokenFromStorage() {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    console.log('🔐 Token removido do localStorage');
+}
+
 // Função para carregar o Google Identity Services
 function loadGoogleIdentityServices() {
     return new Promise((resolve, reject) => {
@@ -141,6 +187,9 @@ async function initializeGoogleCalendar() {
                     accessToken = tokenResponse.access_token;
                     isGoogleCalendarAuthorized = true;
                     
+                    // Salvar token no localStorage
+                    saveTokenToStorage(tokenResponse);
+                    
                     // Configurar o token no gapi
                     gapi.client.setToken({
                         access_token: accessToken
@@ -178,7 +227,9 @@ async function initializeGoogleCalendar() {
         });
         
         console.log('✅ Google Calendar API inicializada com GSI!');
-        updateGoogleCalendarUI();
+        
+        // Verificar se já temos um token salvo
+        checkStoredToken();
         
     } catch (error) {
         console.error('❌ Erro ao inicializar Google Calendar API:', error);
@@ -257,6 +308,9 @@ function disconnectGoogleCalendar() {
         accessToken = null;
         isGoogleCalendarAuthorized = false;
         
+        // Limpar token do localStorage
+        clearTokenFromStorage();
+        
         // Limpar token do gapi
         if (gapi && gapi.client && gapi.client.setToken) {
             gapi.client.setToken(null);
@@ -267,6 +321,36 @@ function disconnectGoogleCalendar() {
         
     } catch (error) {
         console.error('❌ Erro ao desconectar:', error);
+    }
+}
+
+// Função para verificar automaticamente o token ao carregar a página
+function checkStoredToken() {
+    console.log('🔍 Verificando token armazenado...');
+    
+    if (loadTokenFromStorage()) {
+        console.log('✅ Token válido encontrado, configurando Google API...');
+        
+        // Aguardar o gapi estar carregado antes de configurar o token
+        if (gapi && gapi.client) {
+            gapi.client.setToken({
+                access_token: accessToken
+            });
+            updateGoogleCalendarUI();
+        } else {
+            // Se o gapi ainda não estiver carregado, aguardar
+            setTimeout(() => {
+                if (gapi && gapi.client) {
+                    gapi.client.setToken({
+                        access_token: accessToken
+                    });
+                    updateGoogleCalendarUI();
+                }
+            }, 1000);
+        }
+    } else {
+        console.log('ℹ️ Nenhum token válido encontrado');
+        updateGoogleCalendarUI();
     }
 }
 
