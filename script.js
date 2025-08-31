@@ -72,13 +72,12 @@ function validarHorarioEscolar(input, tipo) {
     const [h, m] = horario.split(':').map(Number);
     const minutos = h * 60 + m;
     
-    // Períodos válidos: 7:00-11:00 e 13:00-17:00
-    const validoManha = (minutos >= 420 && minutos <= 660); // 7:00 às 11:00
-    const validoTarde = (minutos >= 780 && minutos <= 1020); // 13:00 às 17:00
+    // Período válido: 7:00-17:00 (horário escolar completo)
+    const validoEscolar = (minutos >= 420 && minutos <= 1020); // 7:00 às 17:00
     
-    if (!validoManha && !validoTarde) {
+    if (!validoEscolar) {
         input.style.borderColor = '#f44336';
-        input.title = `Horário de ${tipo} deve estar entre 7h-11h ou 13h-17h`;
+        input.title = `Horário de ${tipo} deve estar entre 7h e 17h`;
     } else {
         input.style.borderColor = '';
         input.title = '';
@@ -422,19 +421,14 @@ form.addEventListener('submit', async (e) => {
     }
 
     // Validar se os horários estão dentro do período escolar
-    const periodoManha = (inicioMinutos >= 420 && fimMinutos <= 660); // 7:00 às 11:00
-    const periodoTarde = (inicioMinutos >= 780 && fimMinutos <= 1020); // 13:00 às 17:00
+    const periodoEscolar = (inicioMinutos >= 420 && fimMinutos <= 1020); // 7:00 às 17:00
     
-    if (!periodoManha && !periodoTarde) {
-        alert('Os horários devem estar dentro do período escolar: 7h às 11h (manhã) ou 13h às 17h (tarde).');
+    if (!periodoEscolar) {
+        alert('Os horários devem estar dentro do período escolar: 7h às 17h.');
         return;
     }
 
-    // Validar se não cruza o intervalo do almoço
-    if (inicioMinutos < 660 && fimMinutos > 660) {
-        alert('O agendamento não pode cruzar o horário de almoço (11h às 13h).');
-        return;
-    }
+
 
     // Validar limite de 2 horas
     const duracaoMinutos = fimMinutos - inicioMinutos;

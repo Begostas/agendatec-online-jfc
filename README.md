@@ -11,7 +11,7 @@ O sistema utiliza uma API serverless no Vercel para armazenar os agendamentos, p
 - Formulário de agendamento com validação de campos
 - Seleção de equipamentos tecnológicos
 - Calendário para escolha de data (não permite datas passadas)
-- Seleção de horários respeitando os períodos escolares (7h-11h e 13h-17h)
+- Seleção de horários respeitando o período escolar (7h-17h)
 - Limitação de agendamento de 2 horas por dia
 - Prevenção de agendamentos simultâneos do mesmo equipamento
 - Prevenção de agendamentos de duas lousas simultaneamente
@@ -24,8 +24,8 @@ O sistema utiliza uma API serverless no Vercel para armazenar os agendamentos, p
 
 ## Regras de Agendamento
 
-- Horário escolar: 7h às 11h (manhã) e 13h às 17h (tarde)
-- Não é possível agendar antes das 7h, entre 11h e 13h, ou após as 17h
+- Horário escolar: 7h às 17h (período completo)
+- Não é possível agendar antes das 7h ou após as 17h
 - Máximo de 2 horas de agendamento por dia
 - Não é permitido agendar duas lousas simultaneamente
 - Cada professor pode fazer apenas um agendamento por dia
