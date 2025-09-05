@@ -477,12 +477,19 @@ async function carregarAgendamentos() {
 }
 
 async function criarTabelaSemanal(agendamentos) {
-    // Gerar horários de 7:30 às 17:00 em intervalos de 30 minutos
-    const horarios = [];
+    // Gerar horários de 7:00 às 17:00 em intervalos de 30 minutos
+    const horarios = ['07:00']; // Adicionar 07:00 no início
     for (let h = 7; h <= 16; h++) {
         for (let m = (h === 7 ? 30 : 0); m < 60; m += 30) {
             if (h === 16 && m > 30) break;
-            horarios.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+            const horario = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            
+            // Pular horários do intervalo do almoço
+            if (horario === '11:30' || horario === '12:00' || horario === '12:30') {
+                continue;
+            }
+            
+            horarios.push(horario);
         }
     }
     horarios.push('17:00');
@@ -564,7 +571,34 @@ async function criarTabelaSemanal(agendamentos) {
     tabelaBody.innerHTML = '';
 
     // Criar linhas da tabela
-    horarios.forEach(horario => {
+    horarios.forEach((horario, index) => {
+        // Adicionar divisor de intervalo após 11:00 e antes de 13:00
+        if (horario === '13:00' && index > 0 && horarios[index - 1] === '11:00') {
+            const trIntervalo = document.createElement('tr');
+            trIntervalo.className = 'intervalo-almoco';
+            trIntervalo.style.height = '30px'; // Linha mais estreita
+            
+            const tdIntervalo = document.createElement('td');
+            tdIntervalo.className = 'horario-cell intervalo-cell';
+            tdIntervalo.textContent = '--- INTERVALO ---';
+            tdIntervalo.style.fontWeight = 'bold';
+            tdIntervalo.style.textAlign = 'center';
+            tdIntervalo.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'; // Mesma cor da tabela
+            tdIntervalo.style.color = 'var(--primary-color)'; // Mesma cor da tabela
+            trIntervalo.appendChild(tdIntervalo);
+            
+            // Adicionar células vazias para os dias da semana
+            for (let i = 0; i < 5; i++) {
+                const tdVazio = document.createElement('td');
+                tdVazio.style.backgroundColor = 'rgba(255, 255, 255, 0.02)'; // Mesma cor dos dias vazios
+                tdVazio.style.borderTop = '2px solid #ddd';
+                tdVazio.style.borderBottom = '2px solid #ddd';
+                trIntervalo.appendChild(tdVazio);
+            }
+            
+            tabelaBody.appendChild(trIntervalo);
+        }
+        
         const tr = document.createElement('tr');
         
         // Coluna do horário
