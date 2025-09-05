@@ -257,7 +257,7 @@ function validarHorarioEscolar(input, tipo) {
     const validoEscolar = (minutos >= 420 && minutos <= 1020); // 7:00 às 17:00
     
     if (!validoEscolar) {
-        input.style.borderColor = '#f44336';
+        input.style.borderColor = 'var(--accent-color)';
         input.title = `Horário de ${tipo} deve estar entre 7h e 17h`;
     } else {
         input.style.borderColor = '';
@@ -280,7 +280,7 @@ function validarOrdemHorarios() {
     const horaFimInput = document.getElementById('hora-fim');
     
     if (inicioMinutos >= fimMinutos) {
-        horaFimInput.style.borderColor = '#f44336';
+        horaFimInput.style.borderColor = 'var(--accent-color)';
         horaFimInput.title = 'Horário de fim deve ser posterior ao horário de início';
     } else {
         horaFimInput.style.borderColor = '';
@@ -591,8 +591,8 @@ async function criarTabelaSemanal(agendamentos) {
             for (let i = 0; i < 5; i++) {
                 const tdVazio = document.createElement('td');
                 tdVazio.style.backgroundColor = 'rgba(255, 255, 255, 0.02)'; // Mesma cor dos dias vazios
-                tdVazio.style.borderTop = '2px solid #ddd';
-                tdVazio.style.borderBottom = '2px solid #ddd';
+                tdVazio.style.borderTop = '2px solid var(--border-color)';
+        tdVazio.style.borderBottom = '2px solid var(--border-color)';
                 trIntervalo.appendChild(tdVazio);
             }
             
@@ -919,7 +919,7 @@ async function carregarHistorico() {
         tabelaBody.innerHTML = '';
 
         if (dadosHistorico.length === 0) {
-            tabelaBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #888;">Nenhum agendamento no histórico</td></tr>';
+            tabelaBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--light-color);">Nenhum agendamento no histórico</td></tr>';
         } else {
             dadosHistorico.forEach(ag => {
                 const horaInicio = ag.horaInicio.substring(0, 5);

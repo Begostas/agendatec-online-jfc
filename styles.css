@@ -1,20 +1,20 @@
 /* Importação das fontes */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
-/* Estilos gerais - Tema Escuro */
+/* Estilos gerais - Tema Azul Petróleo */
 :root {
-    --primary-color: #2196f3;
-    --secondary-color: #0d47a1;
-    --accent-color: #f44336;
-    --light-color: #b0bec5;
-    --dark-color: #263238;
+    --primary-color: #87CEEB; /* Azul claro para fontes */
+    --secondary-color: #4682B4; /* Azul médio */
+    --accent-color: #CC5500; /* Laranja escuro */
+    --light-color: #B0E0E6;
+    --dark-color: #2F4F4F; /* Azul petróleo escuro */
     --success-color: #4caf50;
-    --warning-color: #ff9800;
-    --bg-color: #121212;
-    --card-bg-color: #1e1e1e;
-    --text-color: #e0e0e0;
-    --border-color: #333;
-    --hover-color: rgba(33, 150, 243, 0.1);
+    --warning-color: #CC5500; /* Laranja escuro */
+    --bg-color: #2F4F4F; /* Azul petróleo para fundo */
+    --card-bg-color: #36454F; /* Azul petróleo mais claro para cards */
+    --text-color: #87CEEB; /* Azul claro para texto */
+    --border-color: #4682B4;
+    --hover-color: rgba(204, 85, 0, 0.1); /* Laranja escuro com transparência */
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     --border-radius: 8px;
 }
@@ -127,7 +127,7 @@ label {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #2a2a2a;
+    background-color: var(--card-bg-color);
     padding: 15px 20px;
     border-radius: 12px;
     border: 2px solid var(--border-color);
@@ -138,7 +138,7 @@ label {
 }
 
 .checkbox-item:hover {
-    background-color: #3a3a3a;
+    background-color: var(--dark-color);
     border-color: var(--primary-color);
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(33, 150, 243, 0.2);
@@ -164,7 +164,7 @@ label {
 .checkbox-item:has(input:disabled) {
     opacity: 0.5;
     cursor: not-allowed;
-    background-color: #1a1a1a;
+    background-color: var(--bg-color);
 }
 
 .checkbox-item:has(input:disabled):hover {
@@ -264,8 +264,8 @@ button:hover {
 }
 
 button:disabled {
-    background-color: #555;
-    color: #888;
+    background-color: var(--dark-color);
+    color: var(--light-color);
     cursor: not-allowed;
     transform: none;
 }
@@ -322,7 +322,7 @@ footer a:hover, header a:hover {
 
 /* Estilos para feriados na tabela semanal */
 .holiday-header {
-    background: linear-gradient(135deg, #ff6b6b, #ffa726) !important;
+    background: linear-gradient(135deg, var(--accent-color), var(--warning-color)) !important;
     color: white !important;
     font-weight: bold;
     position: relative;
@@ -338,7 +338,7 @@ footer a:hover, header a:hover {
 
 .holiday-cell {
     background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 167, 38, 0.1)) !important;
-    border-left: 3px solid #ff6b6b !important;
+    border-left: 3px solid var(--accent-color) !important;
     position: relative;
 }
 
@@ -637,6 +637,7 @@ select option {
 
 .tabela-semanal .dia-col {
     width: calc((100% - 80px) / 5);
+    background-color: var(--accent-color) !important;
 }
 
 .tabela-semanal td {
