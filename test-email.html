@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste EmailJS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <h1>Teste de Envio de E-mail</h1>
+    <button id="test-email">Testar Envio de E-mail</button>
+    <div id="result"></div>
+
+    <script>
+        // Configurações do EmailJS
+        const EMAILJS_CONFIG = {
+            serviceID: 'service_ypnksmp',
+            templateID: 'template_56yfund', 
+            publicKey: 'S3CuQhv426S2tMMO5'
+        };
+
+        // Inicializar EmailJS
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof emailjs !== 'undefined') {
+                emailjs.init(EMAILJS_CONFIG.publicKey);
+                console.log('EmailJS inicializado com sucesso!');
+                document.getElementById('result').innerHTML = '<p style="color: green;">EmailJS carregado com sucesso!</p>';
+            } else {
+                console.error('EmailJS não foi carregado!');
+                document.getElementById('result').innerHTML = '<p style="color: red;">Erro: EmailJS não foi carregado!</p>';
+            }
+        });
+
+        // Teste de envio
+        document.getElementById('test-email').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p style="color: blue;">Enviando e-mail de teste...</p>';
+            
+            try {
+                const templateParams = {
+                    to_email: 'eric.benaglia@gmail.com',
+                    from_name: 'Sistema de Agendamento - AgendaTec (TESTE)',
+                    professor_nome: 'Professor Teste',
+                    professor_turma: 'Turma Teste',
+                    professor_contato: 'contato@teste.com',
+                    equipamentos: 'Equipamento Teste',
+                    data_agendamento: '01/01/2025',
+                    horario_inicio: '08:00',
+                    horario_fim: '09:00',
+                    mensagem: 'Esta é uma mensagem de teste',
+                    timestamp: new Date().toLocaleString('pt-BR')
+                };
+
+                const response = await emailjs.send(
+                    EMAILJS_CONFIG.serviceID, 
+                    EMAILJS_CONFIG.templateID, 
+                    templateParams, 
+                    EMAILJS_CONFIG.publicKey
+                );
+                
+                console.log('E-mail enviado com sucesso:', response);
+                resultDiv.innerHTML = '<p style="color: green;">✅ E-mail enviado com sucesso! Verifique sua caixa de entrada.</p>';
+                
+            } catch (error) {
+                console.error('Erro ao enviar e-mail:', error);
+                resultDiv.innerHTML = `<p style="color: red;">❌ Erro ao enviar e-mail: ${error.message || error}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

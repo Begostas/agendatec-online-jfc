@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug EmailJS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <h1>Debug EmailJS - Verificação de Credenciais</h1>
+    <div id="status"></div>
+    <button id="test-credentials">Testar Credenciais</button>
+    <button id="test-simple-email">Enviar E-mail Simples</button>
+    
+    <div id="logs" style="margin-top: 20px; padding: 10px; background: #f5f5f5; font-family: monospace; white-space: pre-wrap;"></div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const logsDiv = document.getElementById('logs');
+        
+        function log(message) {
+            console.log(message);
+            logsDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+        
+        // Configurações do EmailJS
+        const EMAILJS_CONFIG = {
+            serviceID: 'service_ypnksmp',
+            templateID: 'template_56yfund', 
+            publicKey: 'S3CuQhv426S2tMMO5'
+        };
+
+        // Inicializar EmailJS
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🔄 Carregando EmailJS...');
+            
+            if (typeof emailjs !== 'undefined') {
+                try {
+                    emailjs.init(EMAILJS_CONFIG.publicKey);
+                    log('✅ EmailJS inicializado com sucesso!');
+                    statusDiv.innerHTML = '<p style="color: green;">✅ EmailJS carregado e inicializado!</p>';
+                } catch (error) {
+                    log('❌ Erro ao inicializar EmailJS: ' + error.message);
+                    statusDiv.innerHTML = '<p style="color: red;">❌ Erro ao inicializar EmailJS!</p>';
+                }
+            } else {
+                log('❌ EmailJS não foi carregado!');
+                statusDiv.innerHTML = '<p style="color: red;">❌ EmailJS não foi carregado!</p>';
+            }
+        });
+
+        // Teste de credenciais
+        document.getElementById('test-credentials').addEventListener('click', function() {
+            log('🔍 Testando credenciais...');
+            log('Service ID: ' + EMAILJS_CONFIG.serviceID);
+            log('Template ID: ' + EMAILJS_CONFIG.templateID);
+            log('Public Key: ' + EMAILJS_CONFIG.publicKey.substring(0, 8) + '...');
+            
+            if (typeof emailjs !== 'undefined') {
+                log('✅ EmailJS está disponível');
+                log('Versão do EmailJS: ' + (emailjs.version || 'Desconhecida'));
+            } else {
+                log('❌ EmailJS não está disponível');
+            }
+        });
+
+        // Teste de envio simples
+        document.getElementById('test-simple-email').addEventListener('click', async function() {
+            log('📤 Iniciando teste de envio...');
+            
+            try {
+                const templateParams = {
+                    to_email: 'eric.benaglia@gmail.com',
+                    from_name: 'Teste Debug EmailJS',
+                    professor_nome: 'Teste Debug',
+                    professor_turma: 'Debug',
+                    professor_contato: 'debug@teste.com',
+                    equipamentos: 'Teste',
+                    data_agendamento: '01/01/2025',
+                    horario_inicio: '08:00',
+                    horario_fim: '09:00',
+                    mensagem: 'Este é um teste de debug do sistema de e-mail',
+                    timestamp: new Date().toLocaleString('pt-BR')
+                };
+                
+                log('📧 Parâmetros preparados: ' + JSON.stringify(templateParams, null, 2));
+                
+                const response = await emailjs.send(
+                    EMAILJS_CONFIG.serviceID, 
+                    EMAILJS_CONFIG.templateID, 
+                    templateParams, 
+                    EMAILJS_CONFIG.publicKey
+                );
+                
+                log('✅ E-mail enviado com sucesso!');
+                log('Resposta: ' + JSON.stringify(response, null, 2));
+                statusDiv.innerHTML = '<p style="color: green;">✅ E-mail enviado com sucesso!</p>';
+                
+            } catch (error) {
+                log('❌ Erro ao enviar e-mail: ' + error.message);
+                log('Erro completo: ' + JSON.stringify(error, null, 2));
+                statusDiv.innerHTML = '<p style="color: red;">❌ Erro ao enviar e-mail: ' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>

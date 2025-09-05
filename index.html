@@ -38,20 +38,30 @@
                             <label for="turma">Turma*</label>
                             <select id="turma" name="turma" required>
                                 <option value="">Selecione a turma</option>
-                                <option value="Grupo 5A">Grupo 5A</option>
-                                <option value="Grupo 5B">Grupo 5B</option>
-                                <option value="Grupo 5C">Grupo 5C</option>
                                 <option value="Grupo 6A">Grupo 6A</option>
                                 <option value="Grupo 6B">Grupo 6B</option>
+                                <option value="Grupo 6C">Grupo 6C</option>
+                                <option value="Grupo 6D">Grupo 6D</option>
                                 <option value="1º ano A">1º ano A</option>
                                 <option value="1º ano B">1º ano B</option>
                                 <option value="1º ano C">1º ano C</option>
+                                <option value="1º ano D">1º ano D</option>
                                 <option value="2º ano A">2º ano A</option>
                                 <option value="2º ano B">2º ano B</option>
                                 <option value="2º ano C">2º ano C</option>
+                                <option value="2º ano D">2º ano D</option>
                                 <option value="3º ano A">3º ano A</option>
                                 <option value="3º ano B">3º ano B</option>
                                 <option value="3º ano C">3º ano C</option>
+                                <option value="3º ano D">3º ano D</option>
+                                <option value="4º ano A">4º ano A</option>
+                                <option value="4º ano B">4º ano B</option>
+                                <option value="4º ano C">4º ano C</option>
+                                <option value="4º ano D">4º ano D</option>
+                                <option value="5º ano A">5º ano A</option>
+                                <option value="5º ano B">5º ano B</option>
+                                <option value="5º ano C">5º ano C</option>
+                                <option value="5º ano D">5º ano D</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -61,21 +71,17 @@
                                     <input type="checkbox" id="equip-sala" name="equipamentos" value="Sala de Informática">
                                     <label for="equip-sala">Sala de Informática</label>
                                 </div>
-                                <div class="checkbox-item" data-value="Lousa 1">
-                                    <input type="checkbox" id="equip-lousa1" name="equipamentos" value="Lousa 1" class="lousa-checkbox">
-                                    <label for="equip-lousa1">Lousa 1</label>
+                                <div class="checkbox-item" data-value="Lousa Laboratório">
+                                    <input type="checkbox" id="equip-lousa-lab" name="equipamentos" value="Lousa Laboratório" class="lousa-checkbox">
+                                    <label for="equip-lousa-lab">Lousa Laboratório</label>
                                 </div>
-                                <div class="checkbox-item" data-value="Lousa 2">
-                                    <input type="checkbox" id="equip-lousa2" name="equipamentos" value="Lousa 2" class="lousa-checkbox">
-                                    <label for="equip-lousa2">Lousa 2</label>
+                                <div class="checkbox-item" data-value="Lousa Biblioteca">
+                                    <input type="checkbox" id="equip-lousa-bib" name="equipamentos" value="Lousa Biblioteca" class="lousa-checkbox">
+                                    <label for="equip-lousa-bib">Lousa Biblioteca</label>
                                 </div>
-                                <div class="checkbox-item" data-value="Caixa de som">
-                                    <input type="checkbox" id="equip-caixa" name="equipamentos" value="Caixa de som">
-                                    <label for="equip-caixa">Caixa de som</label>
-                                </div>
-                                <div class="checkbox-item" data-value="Microfone">
-                                    <input type="checkbox" id="equip-microfone" name="equipamentos" value="Microfone">
-                                    <label for="equip-microfone">Microfone</label>
+                                <div class="checkbox-item" data-value="Lousa Anfiteatro">
+                                    <input type="checkbox" id="equip-lousa-anf" name="equipamentos" value="Lousa Anfiteatro" class="lousa-checkbox">
+                                    <label for="equip-lousa-anf">Lousa Anfiteatro</label>
                                 </div>
                             </div>
                         </div>
@@ -109,33 +115,25 @@
                         <button type="submit" id="btn-agendar">Registrar Agendamento</button>
                     </div>
                     
-                    <div class="google-calendar-section">
-                        <h3><i class="fab fa-google"></i> Integração com Google Calendar</h3>
-                        <p>Conecte seu Google Calendar para criar eventos automaticamente:</p>
-                        <div class="calendar-controls">
-                            <span class="calendar-status">Status: <span id="calendar-status" class="status-disconnected">Desconectado</span></span>
-                            <button type="button" id="btn-connect-calendar" class="btn-calendar">Conectar Google Calendar</button>
-                            <button type="button" id="btn-disconnect-calendar" class="btn-calendar" style="display: none;">Desconectar</button>
-                        </div>
-                    </div>
+                    <!-- Google Calendar integration removed -->
                 </form>
             </section>
 
             <section class="agendamentos-container">
                 <h2>Agendamentos Futuros</h2>
                 <div class="table-container">
-                    <table id="tabela-agendamentos">
+                    <table id="tabela-agendamentos-semanal" class="tabela-semanal">
                         <thead>
                             <tr>
-                                <th>Nome</th>
-                                <th>Turma</th>
-                                <th>Equipamentos</th>
-                                <th>Data</th>
-                                <th>Horário</th>
-                                <th>Mensagem</th>
+                                <th class="horario-col">Horário</th>
+                                <th class="dia-col">Segunda-feira</th>
+                                <th class="dia-col">Terça-feira</th>
+                                <th class="dia-col">Quarta-feira</th>
+                                <th class="dia-col">Quinta-feira</th>
+                                <th class="dia-col">Sexta-feira</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="tabela-semanal-body">
                             <!-- Conteúdo dinâmico com JavaScript -->
                         </tbody>
                     </table>
@@ -179,7 +177,7 @@
 
     <script src="supabase-config.js"></script>
     <script src="emailjs-config.js"></script>
-    <script src="google-calendar-config.js"></script>
+    <!-- Google Calendar script removed -->
     <script src="script.js"></script>
 </body>
 </html>

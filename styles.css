@@ -318,78 +318,58 @@ footer a:hover, header a:hover {
     text-decoration: underline;
 }
 
-/* Google Calendar Integration */
-.google-calendar-section {
-    margin-top: 30px;
-    padding: 20px;
-    background: var(--card-bg-color);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
+/* Google Calendar styles removed */
+
+/* Estilos para feriados na tabela semanal */
+.holiday-header {
+    background: linear-gradient(135deg, #ff6b6b, #ffa726) !important;
+    color: white !important;
+    font-weight: bold;
+    position: relative;
 }
 
-.google-calendar-section h3 {
-    color: var(--primary-color);
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.holiday-indicator {
+    display: block;
+    font-size: 0.75em;
+    font-weight: normal;
+    margin-top: 2px;
+    opacity: 0.9;
 }
 
-.google-calendar-section p {
-    color: var(--light-color);
-    margin-bottom: 15px;
-    font-size: 0.9rem;
+.holiday-cell {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 167, 38, 0.1)) !important;
+    border-left: 3px solid #ff6b6b !important;
+    position: relative;
 }
 
-.calendar-controls {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
+.holiday-cell::before {
+    content: '🎉';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.8em;
+    opacity: 0.7;
 }
 
-.calendar-status {
-    font-size: 0.9rem;
-    color: var(--light-color);
+.holiday-cell.dia-vazio {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 167, 38, 0.05)) !important;
 }
 
-.status-connected {
-    color: var(--success-color);
-    font-weight: 600;
-}
-
-.status-disconnected {
-    color: var(--accent-color);
-    font-weight: 600;
-}
-
-.status-error {
-    color: var(--warning-color);
-    font-weight: 600;
-}
-
-.btn-calendar {
-    background: #4285f4;
+/* Tooltip para feriados */
+.holiday-cell[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-calendar:hover {
-    background: #3367d6;
-    transform: translateY(-1px);
-}
-
-.btn-calendar:active {
-    transform: translateY(0);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
 }
 
 /* Responsividade */
@@ -632,4 +612,82 @@ select option {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Estilos para tabela semanal */
+.tabela-semanal {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.tabela-semanal th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+}
+
+.tabela-semanal .horario-col {
+    width: 80px;
+    background-color: var(--secondary-color);
+}
+
+.tabela-semanal .dia-col {
+    width: calc((100% - 80px) / 5);
+}
+
+.tabela-semanal td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    vertical-align: top;
+    height: 60px;
+}
+
+.tabela-semanal .horario-cell {
+    background-color: rgba(255, 255, 255, 0.05);
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.agendamento-item {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+.agendamento-nome {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.agendamento-equipamento {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.dia-vazio {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+@media (max-width: 768px) {
+    .tabela-semanal {
+        font-size: 0.8rem;
+    }
+    
+    .tabela-semanal .horario-col {
+        width: 60px;
+    }
+    
+    .agendamento-item {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+    }
 }

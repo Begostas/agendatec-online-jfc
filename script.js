@@ -1,13 +1,194 @@
 // Referências aos elementos do DOM
 const form = document.getElementById('agendamento-form');
 const btnAgendar = document.getElementById('btn-agendar');
-const tabelaBody = document.querySelector('#tabela-agendamentos tbody');
+const tabelaBody = document.querySelector('#tabela-semanal-body');
+
+// Configuração da API de feriados
+const HOLIDAYS_API_KEY = 'demo'; // Use 'demo' para testes ou substitua por sua chave da Abstract API
+const HOLIDAYS_API_URL = 'https://holidays.abstractapi.com/v1/';
+
+// Cache para feriados (evitar múltiplas chamadas)
+let cacheHolidays = {
+    data: null,
+    year: null,
+    lastFetch: null
+};
+
+// Variáveis globais
+let agendamentos = [];
+let ultimaAtualizacaoSemana = new Date().toISOString().split('T')[0];
+
+// Funções utilitárias para formatação internacional de datas
+function formatDateISO(date) {
+    return date.toISOString().split('T')[0];
+}
+
+function formatDateDisplay(dateString) {
+    // Converte YYYY-MM-DD para DD/MM/YYYY para exibição
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateTimeDisplay(date) {
+    // Formato internacional para exibição: DD/MM/YYYY HH:MM
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+// Função para buscar feriados da API
+async function buscarFeriados(ano) {
+    // Verificar cache primeiro
+    const agora = Date.now();
+    const umDiaEmMs = 24 * 60 * 60 * 1000;
+    
+    if (cacheHolidays.data && 
+        cacheHolidays.year === ano && 
+        cacheHolidays.lastFetch && 
+        (agora - cacheHolidays.lastFetch) < umDiaEmMs) {
+        console.log('📅 Usando feriados do cache para', ano);
+        return cacheHolidays.data;
+    }
+    
+    try {
+        console.log('🌐 Buscando feriados online para', ano);
+        const response = await fetch(`${HOLIDAYS_API_URL}?api_key=${HOLIDAYS_API_KEY}&country=BR&year=${ano}`);
+        
+        if (!response.ok) {
+            throw new Error(`Erro na API: ${response.status}`);
+        }
+        
+        const holidays = await response.json();
+        
+        // Atualizar cache
+        cacheHolidays = {
+            data: holidays,
+            year: ano,
+            lastFetch: agora
+        };
+        
+        console.log(`✅ ${holidays.length} feriados carregados para ${ano}`);
+        return holidays;
+        
+    } catch (error) {
+        console.warn('⚠️ Erro ao buscar feriados:', error.message);
+        // Retornar feriados básicos do Brasil como fallback
+        return getFeriadosBasicos(ano);
+    }
+}
+
+// Função fallback com feriados básicos do Brasil
+function getFeriadosBasicos(ano) {
+    return [
+        { name: 'Ano Novo', date: `${ano}-01-01`, type: 'national' },
+        { name: 'Tiradentes', date: `${ano}-04-21`, type: 'national' },
+        { name: 'Dia do Trabalhador', date: `${ano}-05-01`, type: 'national' },
+        { name: 'Independência do Brasil', date: `${ano}-09-07`, type: 'national' },
+        { name: 'Nossa Senhora Aparecida', date: `${ano}-10-12`, type: 'national' },
+        { name: 'Finados', date: `${ano}-11-02`, type: 'national' },
+        { name: 'Proclamação da República', date: `${ano}-11-15`, type: 'national' },
+        { name: 'Natal', date: `${ano}-12-25`, type: 'national' }
+    ];
+}
+
+// Função para verificar se uma data é feriado
+function isHoliday(dateString, holidays) {
+    if (!holidays || holidays.length === 0) return null;
+    
+    const holiday = holidays.find(h => h.date === dateString);
+    return holiday || null;
+}
+
+// Função para formatar data no padrão YYYY-MM-DD
+function formatDateForAPI(date) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Função para verificar se precisa atualizar a visualização semanal
+function verificarAtualizacaoSemanal() {
+    const agora = new Date();
+    const hoje = formatDateISO(agora);
+    const diaSemana = agora.getDay();
+    
+    // Se mudou o dia e é sábado (dia 6), atualizar a visualização
+    if (hoje !== ultimaAtualizacaoSemana && diaSemana === 6) {
+        console.log('🔄 Atualizando visualização semanal automaticamente (sábado detectado)');
+        carregarAgendamentos();
+        ultimaAtualizacaoSemana = hoje;
+    }
+    // Se mudou o dia (qualquer dia), verificar se precisa atualizar
+    else if (hoje !== ultimaAtualizacaoSemana) {
+        ultimaAtualizacaoSemana = hoje;
+        // Recarregar para garantir que a semana está correta
+        carregarAgendamentos();
+    }
+}
+
+// Função para calcular tempo até próximo sábado 00:00
+function tempoAteProximoSabado() {
+    const agora = new Date();
+    const proximoSabado = new Date(agora);
+    
+    // Calcular dias até o próximo sábado (6 = sábado)
+    const diasAteProximoSabado = (6 - agora.getDay() + 7) % 7;
+    
+    if (diasAteProximoSabado === 0 && agora.getHours() === 0 && agora.getMinutes() === 0) {
+        // É exatamente sábado 00:00, próximo sábado é em 7 dias
+        proximoSabado.setDate(agora.getDate() + 7);
+    } else if (diasAteProximoSabado === 0) {
+        // É sábado mas não é 00:00, próximo sábado é em 7 dias
+        proximoSabado.setDate(agora.getDate() + 7);
+    } else {
+        // Não é sábado, calcular próximo sábado
+        proximoSabado.setDate(agora.getDate() + diasAteProximoSabado);
+    }
+    
+    proximoSabado.setHours(0, 0, 0, 0);
+    
+    return proximoSabado.getTime() - agora.getTime();
+}
+
+// Configurar timer para verificação automática
+function iniciarVerificacaoAutomatica() {
+    // Verificar imediatamente
+    verificarAtualizacaoSemanal();
+    
+    // Configurar verificação a cada minuto (60000ms)
+    setInterval(verificarAtualizacaoSemanal, 60000);
+    
+    // Configurar timer específico para sábado 00:00
+    const tempoAteProximoSabadoMs = tempoAteProximoSabado();
+    
+    setTimeout(() => {
+        console.log('🎯 Sábado 00:00 detectado! Atualizando para próxima semana...');
+        carregarAgendamentos();
+        
+        // Reconfigurar timer para próximo sábado (a cada 7 dias)
+        setInterval(() => {
+            console.log('🎯 Sábado 00:00 detectado! Atualizando para próxima semana...');
+            carregarAgendamentos();
+        }, 7 * 24 * 60 * 60 * 1000); // 7 dias em milissegundos
+        
+    }, tempoAteProximoSabadoMs);
+    
+    console.log('✅ Verificação automática de atualização semanal iniciada');
+    console.log(`⏰ Próxima atualização automática em: ${Math.round(tempoAteProximoSabadoMs / (1000 * 60 * 60))} horas`);
+}
 
 // Habilitar botão e carregar agendamentos ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
     btnAgendar.disabled = false;
     carregarAgendamentos();
     popularHorarios();
+    
+    // Iniciar verificação automática de atualização semanal
+    iniciarVerificacaoAutomatica();
 
     const dataInput = document.getElementById('data');
     const hoje = new Date();
@@ -292,23 +473,141 @@ async function carregarAgendamentos() {
         return;
     }
 
-    tabelaBody.innerHTML = '';
-    data.forEach(ag => {
+    await criarTabelaSemanal(data);
+}
+
+async function criarTabelaSemanal(agendamentos) {
+    // Gerar horários de 7:30 às 17:00 em intervalos de 30 minutos
+    const horarios = [];
+    for (let h = 7; h <= 16; h++) {
+        for (let m = (h === 7 ? 30 : 0); m < 60; m += 30) {
+            if (h === 16 && m > 30) break;
+            horarios.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+        }
+    }
+    horarios.push('17:00');
+
+    // Para setembro de 2025, forçar a primeira semana (01/09 a 05/09)
+    const hoje = new Date();
+    console.log('Data atual:', formatDateTimeDisplay(hoje));
+    const diaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
+    console.log('Dia da semana atual:', diaSemana);
+    
+    // Forçar a primeira semana de setembro (01/09/2025 a 05/09/2025)
+    const segundaFeira = new Date(2025, 8, 1); // Mês 8 = setembro (0-indexado)
+    
+    console.log('Segunda-feira forçada para primeira semana de setembro:', formatDateDisplay(formatDateISO(segundaFeira)));
+
+    // Criar array com as datas da semana (segunda a sexta)
+    const diasSemana = [];
+    const nomesDias = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'];
+    
+    for (let i = 0; i < 5; i++) {
+        const dia = new Date(segundaFeira);
+        dia.setDate(segundaFeira.getDate() + i);
+        const diaISO = formatDateISO(dia);
+        diasSemana.push(diaISO);
+        console.log(`${nomesDias[i]}: ${formatDateDisplay(diaISO)}`);
+    }
+    
+    // Buscar feriados para o ano atual
+    const anoAtual = segundaFeira.getFullYear();
+    const feriados = await buscarFeriados(anoAtual);
+    
+    // Atualizar cabeçalho da tabela com as datas e indicação de feriados
+    const cabecalhos = document.querySelectorAll('.tabela-semanal .dia-col');
+    cabecalhos.forEach((th, index) => {
+        const dataFormatada = formatDateDisplay(diasSemana[index]).substring(0, 5); // DD/MM
+        const feriado = isHoliday(diasSemana[index], feriados);
+        
+        if (feriado) {
+            th.innerHTML = `${nomesDias[index]} (${dataFormatada})<br><small class="holiday-indicator">🎉 ${feriado.name}</small>`;
+            th.classList.add('holiday-header');
+        } else {
+            th.textContent = `${nomesDias[index]} (${dataFormatada})`;
+            th.classList.remove('holiday-header');
+        }
+    });
+
+    // Organizar agendamentos por data e horário (expandindo por todo o período)
+    const agendamentosPorDiaHora = {};
+    agendamentos.forEach(ag => {
+        const data = ag.data;
         const horaInicio = ag.horaInicio.substring(0, 5);
         const horaFim = ag.horaFim.substring(0, 5);
-        // Corrigir problema de fuso horário na exibição da data
-        const [ano, mes, dia] = ag.data.split('-');
-        const dataFormatada = `${dia}/${mes}/${ano}`;
+        
+        // Converter horários para minutos para facilitar comparação
+        const [hIni, mIni] = horaInicio.split(':').map(Number);
+        const [hFim, mFim] = horaFim.split(':').map(Number);
+        const inicioMinutos = hIni * 60 + mIni;
+        const fimMinutos = hFim * 60 + mFim;
+        
+        // Preencher todas as células do período agendado
+        horarios.forEach(horario => {
+            const [h, m] = horario.split(':').map(Number);
+            const horarioMinutos = h * 60 + m;
+            
+            // Se o horário está dentro do período agendado
+            if (horarioMinutos >= inicioMinutos && horarioMinutos < fimMinutos) {
+                if (!agendamentosPorDiaHora[data]) {
+                    agendamentosPorDiaHora[data] = {};
+                }
+                if (!agendamentosPorDiaHora[data][horario]) {
+                    agendamentosPorDiaHora[data][horario] = [];
+                }
+                agendamentosPorDiaHora[data][horario].push(ag);
+            }
+        });
+    });
 
+    // Limpar tabela
+    tabelaBody.innerHTML = '';
+
+    // Criar linhas da tabela
+    horarios.forEach(horario => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${ag.nome}</td>
-            <td>${ag.turma}</td>
-            <td>${ag.equipamentos.join(', ')}</td>
-            <td>${dataFormatada}</td>
-            <td>${horaInicio} - ${horaFim}</td>
-            <td>${ag.mensagem || ''}</td>
-        `;
+        
+        // Coluna do horário
+        const tdHorario = document.createElement('td');
+        tdHorario.className = 'horario-cell';
+        tdHorario.textContent = horario;
+        tr.appendChild(tdHorario);
+
+        // Colunas dos dias da semana
+        diasSemana.forEach(data => {
+            const td = document.createElement('td');
+            
+            // Verificar se é feriado
+            const feriado = isHoliday(data, feriados);
+            if (feriado) {
+                td.classList.add('holiday-cell');
+                td.title = `Feriado: ${feriado.name}`;
+            }
+            
+            if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
+                agendamentosPorDiaHora[data][horario].forEach(ag => {
+                    const agendamentoDiv = document.createElement('div');
+                    agendamentoDiv.className = 'agendamento-item';
+                    
+                    const nomeDiv = document.createElement('div');
+                    nomeDiv.className = 'agendamento-nome';
+                    nomeDiv.textContent = ag.nome;
+                    
+                    const equipamentoDiv = document.createElement('div');
+                    equipamentoDiv.className = 'agendamento-equipamento';
+                    equipamentoDiv.textContent = ag.equipamentos.join(', ');
+                    
+                    agendamentoDiv.appendChild(nomeDiv);
+                    agendamentoDiv.appendChild(equipamentoDiv);
+                    td.appendChild(agendamentoDiv);
+                });
+            } else {
+                td.className = feriado ? 'dia-vazio holiday-cell' : 'dia-vazio';
+            }
+            
+            tr.appendChild(td);
+        });
+        
         tabelaBody.appendChild(tr);
     });
 }
@@ -485,28 +784,7 @@ form.addEventListener('submit', async (e) => {
         console.error('Erro no envio de e-mail (não afeta o agendamento):', error);
     });
 
-    // Criar evento no Google Calendar de forma assíncrona (não-bloqueante)
-    console.log('🔍 Verificando se createGoogleCalendarEvent está disponível:', typeof createGoogleCalendarEvent);
-    console.log('🔍 Estado da autorização:', typeof isGoogleCalendarAuthorized !== 'undefined' ? isGoogleCalendarAuthorized : 'variável não definida');
-    
-    if (typeof createGoogleCalendarEvent === 'function') {
-        console.log('📅 Chamando createGoogleCalendarEvent com dados:', dadosAgendamento);
-        createGoogleCalendarEvent(dadosAgendamento).then(event => {
-            if (event) {
-                console.log('✅ Evento criado no Google Calendar:', event.htmlLink || event);
-                alert('✅ Evento criado no Google Calendar com sucesso!');
-            } else {
-                console.log('⚠️ createGoogleCalendarEvent retornou false ou null');
-                alert('⚠️ Não foi possível criar o evento no Google Calendar. Verifique se está conectado.');
-            }
-        }).catch(error => {
-            console.error('❌ Erro ao criar evento no Google Calendar:', error);
-            alert('❌ Erro ao criar evento no Google Calendar: ' + error.message);
-        });
-    } else {
-        console.error('❌ Função createGoogleCalendarEvent não está disponível');
-        alert('❌ Google Calendar não está configurado corretamente');
-    }
+    // Google Calendar integration removed
 
     alert("Agendamento realizado com sucesso!");
     form.reset();
@@ -663,7 +941,7 @@ function gerarPDF() {
     doc.text('Escola Municipal Júlio Fernandes Colino', 20, 30);
     
     const hoje = new Date();
-    const dataRelatorio = hoje.toLocaleDateString('pt-BR');
+    const dataRelatorio = formatDateTimeDisplay(hoje);
     doc.text(`Relatório gerado em: ${dataRelatorio}`, 20, 40);
 
     // Preparar dados para a tabela
@@ -671,8 +949,7 @@ function gerarPDF() {
     const linhas = dadosHistorico.map(ag => {
         const horaInicio = ag.horaInicio.substring(0, 5);
         const horaFim = ag.horaFim.substring(0, 5);
-        const [ano, mes, dia] = ag.data.split('-');
-        const dataFormatada = `${dia}/${mes}/${ano}`;
+        const dataFormatada = formatDateDisplay(ag.data);
         
         return [
             ag.nome,
@@ -713,7 +990,8 @@ function gerarPDF() {
     });
 
     // Salvar PDF
-    const nomeArquivo = `historico_agendamentos_${hoje.getFullYear()}_${(hoje.getMonth() + 1).toString().padStart(2, '0')}_${hoje.getDate().toString().padStart(2, '0')}.pdf`;
+    const dataArquivo = formatDateISO(hoje).replace(/-/g, '_');
+    const nomeArquivo = `historico_agendamentos_${dataArquivo}.pdf`;
     doc.save(nomeArquivo);
 }
 
@@ -721,27 +999,18 @@ function gerarPDF() {
 document.getElementById('btn-carregar-historico').addEventListener('click', carregarHistorico);
 document.getElementById('btn-baixar-pdf').addEventListener('click', gerarPDF);
 
-// Event listeners para Google Calendar
-document.addEventListener('DOMContentLoaded', function() {
-    // Botão conectar Google Calendar
-    const btnConnect = document.getElementById('btn-connect-calendar');
-    if (btnConnect) {
-        btnConnect.addEventListener('click', function() {
-            if (typeof authorizeGoogleCalendar === 'function') {
-                authorizeGoogleCalendar();
-            } else {
-                alert('Google Calendar API não está configurada. Verifique as credenciais em google-calendar-config.js');
-            }
-        });
-    }
-    
-    // Botão desconectar Google Calendar
-    const btnDisconnect = document.getElementById('btn-disconnect-calendar');
-    if (btnDisconnect) {
-        btnDisconnect.addEventListener('click', function() {
-            if (typeof disconnectGoogleCalendar === 'function') {
-                disconnectGoogleCalendar();
-            }
-        });
-    }
-});
+// Google Calendar event listeners removed
+
+// Limpar tokens do Google Calendar do localStorage
+if (localStorage.getItem('google_calendar_token')) {
+    localStorage.removeItem('google_calendar_token');
+    console.log('Token do Google Calendar removido do localStorage');
+}
+if (localStorage.getItem('google_calendar_refresh_token')) {
+    localStorage.removeItem('google_calendar_refresh_token');
+    console.log('Refresh token do Google Calendar removido do localStorage');
+}
+if (localStorage.getItem('google_calendar_expires_at')) {
+    localStorage.removeItem('google_calendar_expires_at');
+    console.log('Data de expiração do Google Calendar removida do localStorage');
+}
