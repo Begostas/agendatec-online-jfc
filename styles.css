@@ -140,15 +140,13 @@ label {
 .checkbox-item:hover {
     background-color: var(--dark-color);
     border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.2);
 }
 
 .checkbox-item.selected {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: #374151;
+    border-color: #374151;
     color: white;
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+    box-shadow: 0 6px 12px rgba(55, 65, 81, 0.4);
 }
 
 .checkbox-item.selected:hover {
@@ -215,7 +213,7 @@ label {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary-color);
+    color: #374151;
     font-weight: bold;
     font-size: 12px;
 }
@@ -247,7 +245,7 @@ textarea {
 }
 
 button {
-    background-color: var(--primary-color);
+    background-color: #374151;
     color: white;
     border: none;
     padding: 12px 24px;
@@ -259,8 +257,7 @@ button {
 }
 
 button:hover {
-    background-color: var(--secondary-color);
-    transform: translateY(-2px);
+    background-color: #1f2937;
 }
 
 button:disabled {
@@ -536,12 +533,9 @@ select option {
 
 .btn-secondary:hover {
     background-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .btn-secondary:active {
-    transform: translateY(0);
 }
 
 .btn-secondary i {

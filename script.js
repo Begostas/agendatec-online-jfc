@@ -199,11 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
     horaFimSelect.innerHTML = '<option value="">Selecione primeiro a hora de início</option>';
 
     const horaInicioSelect = document.getElementById('hora-inicio');
-    
-    // Configurar data mínima para hoje e validar fins de semana
-    const amanha = new Date(hoje);
-    amanha.setDate(hoje.getDate() + 1);
-    dataInput.min = amanha.toISOString().split('T')[0];
 
     // Configurar caixas clicáveis para equipamentos
     setupCheckboxItems();
@@ -747,6 +742,17 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
+    // Validação de data passada
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas a data
+    const [ano, mes, dia] = data.split('-').map(Number);
+    const dataSelecionada = new Date(ano, mes - 1, dia);
+    
+    if (dataSelecionada < hoje) {
+        alert('Não é possível agendar para datas passadas. Por favor, selecione uma data atual ou futura.');
+        return;
+    }
+
     // Validação de horários
     if (!horaInicio || !horaFim) {
         alert('Por favor, selecione os horários de início e fim.');
@@ -783,8 +789,6 @@ form.addEventListener('submit', async (e) => {
     }
 
     // Verificar se a data não é sábado ou domingo
-    const [ano, mes, dia] = data.split('-').map(Number);
-    const dataSelecionada = new Date(ano, mes - 1, dia);
     const diaSemana = dataSelecionada.getDay();
     
     if (diaSemana === 0 || diaSemana === 6) {
