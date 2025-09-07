@@ -3,16 +3,16 @@
 
 /* Estilos gerais - Tema Azul Petróleo */
 :root {
-    --primary-color: #87CEEB; /* Azul claro para fontes */
-    --secondary-color: #4682B4; /* Azul médio */
+    --primary-color: #1e3a8a; /* Azul marinho para fontes */
+    --secondary-color: #1e40af; /* Azul marinho médio */
     --accent-color: #CC5500; /* Laranja escuro */
-    --light-color: #B0E0E6;
-    --dark-color: #2F4F4F; /* Azul petróleo escuro */
+    --light-color: #1e40af;
+    --dark-color: #374151; /* Cinza escuro */
     --success-color: #4caf50;
     --warning-color: #CC5500; /* Laranja escuro */
-    --bg-color: #2F4F4F; /* Azul petróleo para fundo */
-    --card-bg-color: #36454F; /* Azul petróleo mais claro para cards */
-    --text-color: #87CEEB; /* Azul claro para texto */
+    --bg-color: #ffffff; /* Branco para fundo */
+    --card-bg-color: #f9fafb; /* Cinza muito claro para cards */
+    --text-color: #1e3a8a; /* Azul marinho para texto */
     --border-color: #4682B4;
     --hover-color: rgba(204, 85, 0, 0.1); /* Laranja escuro com transparência */
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -152,8 +152,8 @@ label {
 }
 
 .checkbox-item.selected:hover {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
+    background-color: #1e2563;
+    border-color: #1e2563;
 }
 
 .checkbox-item input:disabled {
@@ -655,8 +655,8 @@ select option {
 }
 
 .agendamento-item {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: #d1d5db;
+    color: #374151;
     padding: 4px 6px;
     border-radius: 4px;
     margin-bottom: 4px;
