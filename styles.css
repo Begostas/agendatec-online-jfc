@@ -10,9 +10,9 @@
     --dark-color: #374151; /* Cinza escuro */
     --success-color: #4caf50;
     --warning-color: #CC5500; /* Laranja escuro */
-    --bg-color: #ffffff; /* Branco para fundo */
-    --card-bg-color: #f9fafb; /* Cinza muito claro para cards */
-    --text-color: #1e3a8a; /* Azul marinho para texto */
+    --bg-color: #000000; /* Preto para fundo */
+    --card-bg-color: #1a1a1a; /* Cinza muito escuro para cards */
+    --text-color: #ffffff; /* Branco para texto */
     --border-color: #4682B4;
     --hover-color: rgba(204, 85, 0, 0.1); /* Laranja escuro com transparência */
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
