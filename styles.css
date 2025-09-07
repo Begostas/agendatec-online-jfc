@@ -3,10 +3,10 @@
 
 /* Estilos gerais - Tema Azul Petróleo */
 :root {
-    --primary-color: #1e3a8a; /* Azul marinho para fontes */
-    --secondary-color: #1e40af; /* Azul marinho médio */
+    --primary-color: #87CEEB; /* Azul claro para fontes */
+    --secondary-color: #87CEFA; /* Azul claro médio */
     --accent-color: #CC5500; /* Laranja escuro */
-    --light-color: #1e40af;
+    --light-color: #87CEFA;
     --dark-color: #374151; /* Cinza escuro */
     --success-color: #4caf50;
     --warning-color: #CC5500; /* Laranja escuro */
