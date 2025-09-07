@@ -245,7 +245,7 @@ textarea {
 }
 
 button {
-    background-color: #374151;
+    background-color: var(--accent-color);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -257,7 +257,7 @@ button {
 }
 
 button:hover {
-    background-color: #1f2937;
+    background-color: #B8621A;
 }
 
 button:disabled {
@@ -516,7 +516,7 @@ select option {
 }
 
 .btn-secondary {
-    background-color: var(--secondary-color);
+    background-color: var(--accent-color);
     color: white;
     border: none;
     padding: 12px 20px;
@@ -532,7 +532,7 @@ select option {
 }
 
 .btn-secondary:hover {
-    background-color: var(--primary-color);
+    background-color: #B8621A;
 }
 
 .btn-secondary:active {
