@@ -489,43 +489,43 @@ async function criarTabelaSemanal(agendamentos) {
     }
     horarios.push('17:00');
 
-    // Calcular dinamicamente a próxima semana (segunda a sexta) a partir do sábado
+    // Calcular dinamicamente a semana atual (segunda a sexta) ou próxima semana a partir do sábado
     const hoje = new Date();
     console.log('Data atual:', formatDateTimeDisplay(hoje));
     const diaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
     console.log('Dia da semana atual:', diaSemana);
     
-    // Calcular a próxima segunda-feira a partir do sábado
-    let proximaSegunda = new Date(hoje);
+    // Calcular a segunda-feira da semana a ser exibida
+    let segundaFeira = new Date(hoje);
     
     if (diaSemana === 6) {
-        // Se é sábado, próxima segunda é em 2 dias
-        proximaSegunda.setDate(hoje.getDate() + 2);
+        // Se é sábado, mostrar próxima segunda (em 2 dias)
+        segundaFeira.setDate(hoje.getDate() + 2);
     } else if (diaSemana === 0) {
-        // Se é domingo, próxima segunda é em 1 dia
-        proximaSegunda.setDate(hoje.getDate() + 1);
+        // Se é domingo, mostrar próxima segunda (em 1 dia)
+        segundaFeira.setDate(hoje.getDate() + 1);
     } else {
-        // Se é segunda a sexta, calcular próxima segunda
-        const diasAteProximaSegunda = (8 - diaSemana) % 7;
-        proximaSegunda.setDate(hoje.getDate() + diasAteProximaSegunda);
+        // Se é segunda a sexta, mostrar a segunda-feira da semana atual
+        const diasVoltarParaSegunda = diaSemana - 1; // 1=segunda, 2=terça, etc.
+        segundaFeira.setDate(hoje.getDate() - diasVoltarParaSegunda);
     }
     
-    console.log('Próxima segunda-feira calculada:', formatDateDisplay(formatDateISO(proximaSegunda)));
+    console.log('Segunda-feira da semana exibida:', formatDateDisplay(formatDateISO(segundaFeira)));
 
     // Criar array com as datas da semana (segunda a sexta)
     const diasSemana = [];
     const nomesDias = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'];
     
     for (let i = 0; i < 5; i++) {
-        const dia = new Date(proximaSegunda);
-        dia.setDate(proximaSegunda.getDate() + i);
+        const dia = new Date(segundaFeira);
+        dia.setDate(segundaFeira.getDate() + i);
         const diaISO = formatDateISO(dia);
         diasSemana.push(diaISO);
         console.log(`${nomesDias[i]}: ${formatDateDisplay(diaISO)}`);
     }
     
     // Buscar feriados para o ano atual
-    const anoAtual = proximaSegunda.getFullYear();
+    const anoAtual = segundaFeira.getFullYear();
     const feriados = await buscarFeriados(anoAtual);
     
     // Atualizar cabeçalho da tabela com as datas e indicação de feriados
