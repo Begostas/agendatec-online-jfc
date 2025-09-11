@@ -448,6 +448,67 @@ async function moverParaHistorico() {
     }
 }
 
+// Função para gerar opções de semanas futuras
+function gerarOpcoesSemanasF() {
+    const weekSelector = document.getElementById('week-selector');
+    const valorAtual = weekSelector.value; // Preservar seleção atual
+    weekSelector.innerHTML = '';
+    
+    const hoje = new Date();
+    const diaSemana = hoje.getDay();
+    
+    // Calcular a segunda-feira da semana base
+    let segundaFeiraBase = new Date(hoje);
+    if (diaSemana === 6) {
+        // Se é sábado, começar da próxima segunda (eliminar semana atual)
+        segundaFeiraBase.setDate(hoje.getDate() + 2);
+    } else if (diaSemana === 0) {
+        // Se é domingo, próxima segunda (em 1 dia)
+        segundaFeiraBase.setDate(hoje.getDate() + 1);
+    } else {
+        // Se é segunda a sexta, segunda-feira da semana atual
+        const diasVoltarParaSegunda = diaSemana - 1;
+        segundaFeiraBase.setDate(hoje.getDate() - diasVoltarParaSegunda);
+    }
+    
+    // Gerar 3 opções de semanas
+    for (let i = 0; i < 3; i++) {
+        const segundaFeira = new Date(segundaFeiraBase);
+        segundaFeira.setDate(segundaFeiraBase.getDate() + (i * 7));
+        
+        const sextaFeira = new Date(segundaFeira);
+        sextaFeira.setDate(segundaFeira.getDate() + 4);
+        
+        const dataInicio = formatDateDisplay(formatDateISO(segundaFeira));
+        const dataFim = formatDateDisplay(formatDateISO(sextaFeira));
+        
+        const option = document.createElement('option');
+        option.value = i;
+        
+        // Determinar rótulo baseado no dia da semana
+        if (diaSemana === 6) {
+            // No sábado, todas são "próximas semanas"
+            option.textContent = i === 0 ? 
+                `Próxima Semana (${dataInicio} - ${dataFim})` : 
+                `Semana ${i + 1} (${dataInicio} - ${dataFim})`;
+        } else {
+            // Outros dias, primeira é "atual"
+            option.textContent = i === 0 ? 
+                `Semana Atual (${dataInicio} - ${dataFim})` : 
+                `Semana ${i + 1} (${dataInicio} - ${dataFim})`;
+        }
+        
+        weekSelector.appendChild(option);
+    }
+    
+    // Restaurar seleção ou definir padrão
+    if (valorAtual && document.querySelector(`option[value="${valorAtual}"]`)) {
+        weekSelector.value = valorAtual;
+    } else {
+        weekSelector.value = '0'; // Primeira semana disponível
+    }
+}
+
 // Carrega apenas agendamentos de hoje em diante
 async function carregarAgendamentos() {
     // Mover agendamentos antigos para histórico
@@ -468,10 +529,14 @@ async function carregarAgendamentos() {
         return;
     }
 
-    await criarTabelaSemanal(data);
+    // Gerar opções de semanas
+    gerarOpcoesSemanasF();
+    
+    // Carregar semana atual (índice 0)
+    await criarTabelaSemanal(data, 0);
 }
 
-async function criarTabelaSemanal(agendamentos) {
+async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
     // Gerar horários de 7:00 às 17:00 em intervalos de 30 minutos
     const horarios = ['07:00']; // Adicionar 07:00 no início
     for (let h = 7; h <= 16; h++) {
@@ -489,26 +554,30 @@ async function criarTabelaSemanal(agendamentos) {
     }
     horarios.push('17:00');
 
-    // Calcular dinamicamente a semana atual (segunda a sexta) ou próxima semana a partir do sábado
+    // Calcular dinamicamente a semana baseada no índice selecionado
     const hoje = new Date();
     console.log('Data atual:', formatDateTimeDisplay(hoje));
     const diaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
     console.log('Dia da semana atual:', diaSemana);
     
-    // Calcular a segunda-feira da semana a ser exibida
-    let segundaFeira = new Date(hoje);
+    // Calcular a segunda-feira da semana base (atual ou próxima)
+    let segundaFeiraBase = new Date(hoje);
     
     if (diaSemana === 6) {
         // Se é sábado, mostrar próxima segunda (em 2 dias)
-        segundaFeira.setDate(hoje.getDate() + 2);
+        segundaFeiraBase.setDate(hoje.getDate() + 2);
     } else if (diaSemana === 0) {
         // Se é domingo, mostrar próxima segunda (em 1 dia)
-        segundaFeira.setDate(hoje.getDate() + 1);
+        segundaFeiraBase.setDate(hoje.getDate() + 1);
     } else {
         // Se é segunda a sexta, mostrar a segunda-feira da semana atual
         const diasVoltarParaSegunda = diaSemana - 1; // 1=segunda, 2=terça, etc.
-        segundaFeira.setDate(hoje.getDate() - diasVoltarParaSegunda);
+        segundaFeiraBase.setDate(hoje.getDate() - diasVoltarParaSegunda);
     }
+    
+    // Calcular a segunda-feira da semana selecionada
+    const segundaFeira = new Date(segundaFeiraBase);
+    segundaFeira.setDate(segundaFeiraBase.getDate() + (semanaIndex * 7));
     
     console.log('Segunda-feira da semana exibida:', formatDateDisplay(formatDateISO(segundaFeira)));
 
@@ -1048,6 +1117,55 @@ function gerarPDF() {
 // Event listeners para os botões do histórico
 document.getElementById('btn-carregar-historico').addEventListener('click', carregarHistorico);
 document.getElementById('btn-baixar-pdf').addEventListener('click', gerarPDF);
+
+// Função para verificar se precisa atualizar o menu (chamada periodicamente)
+function verificarAtualizacaoMenu() {
+    const hoje = new Date();
+    const diaSemana = hoje.getDay();
+    
+    // Se é sábado, regenerar opções para eliminar semana atual
+    if (diaSemana === 6) {
+        const weekSelector = document.getElementById('week-selector');
+        const primeiraOpcao = weekSelector.querySelector('option');
+        
+        // Verificar se ainda mostra "Semana Atual" no sábado
+        if (primeiraOpcao && primeiraOpcao.textContent.includes('Semana Atual')) {
+            gerarOpcoesSemanasF();
+            // Recarregar agendamentos para a nova semana selecionada
+            carregarAgendamentos();
+        }
+    }
+}
+
+// Event listener para mudança de semana selecionada
+document.getElementById('week-selector').addEventListener('change', async function() {
+    const semanaIndex = parseInt(this.value);
+    console.log('Semana selecionada:', semanaIndex);
+    
+    // Recarregar agendamentos para a semana selecionada
+    const hoje = new Date();
+    const hojeISO = hoje.toISOString().split('T')[0];
+    
+    const { data, error } = await supabaseClient
+        .from('agendamentos')
+        .select('*')
+        .gte('"data"', hojeISO)
+        .order('"data"', { ascending: true })
+        .order('"horaInicio"', { ascending: true });
+    
+    if (error) {
+        console.error("Erro ao carregar agendamentos:", error.message);
+        return;
+    }
+    
+    await criarTabelaSemanal(data, semanaIndex);
+});
+
+// Verificar atualizações do menu a cada 30 minutos
+setInterval(verificarAtualizacaoMenu, 30 * 60 * 1000);
+
+// Verificar imediatamente ao carregar a página
+verificarAtualizacaoMenu();
 
 // Google Calendar event listeners removed
 

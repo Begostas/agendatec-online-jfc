@@ -423,6 +423,56 @@ footer a:hover, header a:hover {
     }
 }
 
+/* Estilos para seletor de semanas */
+.week-selector-container {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.week-selector-container label {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+.week-selector {
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    min-width: 250px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.week-selector:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.week-selector:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    .week-selector-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .week-selector {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
 /* Mensagens de validação */
 .error-message {
     color: var(--accent-color);
