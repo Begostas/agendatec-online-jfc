@@ -1,15 +1,15 @@
-# Sistema de Agendamento de Equipamentos Tecnológicos
+# Sistema de Agendamento de Espaços e Equipamentos Tecnológicos
 
 ## Descrição
 
-Este é um sistema de agendamento de equipamentos tecnológicos para uso escolar. A aplicação permite que professores agendem equipamentos como Sala de Informática, Lousas Digitais, Caixas de Som e Microfones, respeitando as regras de horário da instituição e evitando conflitos de agendamento.
+Este é um sistema de agendamento de espaços e equipamentos tecnológicos para uso escolar. A aplicação permite que professores agendem espaços e equipamentos como Sala de Informática, Lousas Digitais, Caixas de Som e Microfones, respeitando as regras de horário da instituição e evitando conflitos de agendamento.
 
 O sistema utiliza uma API serverless no Vercel para armazenar os agendamentos, permitindo acesso de qualquer dispositivo com conexão à internet.
 
 ## Funcionalidades
 
 - Formulário de agendamento com validação de campos
-- Seleção de equipamentos tecnológicos
+- Seleção de espaços e equipamentos tecnológicos
 - Calendário para escolha de data (não permite datas passadas)
 - Seleção de horários respeitando o período escolar (7h-17h)
 - Limitação de agendamento de 2 horas por dia
@@ -68,4 +68,4 @@ Após a implantação, o Vercel fornecerá uma URL para acessar o aplicativo. Ca
 
 ## Desenvolvido para
 
-Escola de Tecnologia - Sistema de Agendamento de Equipamentos
+Escola de Tecnologia - Sistema de Agendamento de Espaços e Equipamentos

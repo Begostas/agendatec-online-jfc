@@ -1,7 +1,7 @@
 {
   "name": "projeto-agendamento",
   "version": "1.0.0",
-  "description": "Sistema de agendamento de equipamentos tecnológicos para escola",
+  "description": "Sistema de agendamento de espaços e equipamentos tecnológicos para escola",
   "main": "index.html",
   "type": "module",
   "scripts": {
