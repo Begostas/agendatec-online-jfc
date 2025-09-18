@@ -464,8 +464,8 @@ function gerarOpcoesSemanasF() {
         segundaFeiraBase.setDate(hoje.getDate() - diasVoltarParaSegunda);
     }
     
-    // Gerar 7 opções de semanas
-    for (let i = 0; i < 7; i++) {
+    // Gerar 9 opções de semanas
+    for (let i = 0; i < 9; i++) {
         const segundaFeira = new Date(segundaFeiraBase);
         segundaFeira.setDate(segundaFeiraBase.getDate() + (i * 7));
         
