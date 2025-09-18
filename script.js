@@ -369,8 +369,10 @@ function atualizarHorariosFim(horaInicio) {
         limiteHoras = 180; // 3 horas
     } else if (horaInicio === '09:00') {
         limiteHoras = 120; // 2 horas
-    } else if (horaInicio === '10:00' || horaInicio === '12:00') {
+    } else if (horaInicio === '10:00') {
         limiteHoras = 60; // 1 hora
+    } else if (horaInicio === '12:00') {
+        limiteHoras = 70; // 1 hora e 10 minutos - força 13:10 como única opção
     } else if (horaInicio === '11:00') {
         limiteHoras = 120; // 2 horas - até 13:00
     } else {
