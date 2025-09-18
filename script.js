@@ -615,19 +615,18 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
 
     // Criar linhas da tabela
     horarios.forEach((horario, index) => {
-        // Adicionar divisor de intervalo após 11:00 e antes de 13:00
-        if (horario === '13:00' && index > 0 && horarios[index - 1] === '11:00') {
+        // Adicionar divisor de intervalo após 11:00 e antes de 13:10
+        if (horario === '13:10' && index > 0 && horarios[index - 1] === '11:00') {
             const trIntervalo = document.createElement('tr');
             trIntervalo.className = 'intervalo-almoco';
             trIntervalo.style.height = '30px'; // Linha mais estreita
             
             const tdIntervalo = document.createElement('td');
             tdIntervalo.className = 'horario-cell intervalo-cell';
-            tdIntervalo.textContent = '--- INTERVALO ---';
-            tdIntervalo.style.fontWeight = 'bold';
-            tdIntervalo.style.textAlign = 'center';
-            tdIntervalo.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'; // Mesma cor da tabela
-            tdIntervalo.style.color = 'var(--primary-color)'; // Mesma cor da tabela
+            tdIntervalo.innerHTML = '&nbsp;'; // Célula vazia
+            tdIntervalo.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            tdIntervalo.style.borderTop = '3px solid var(--primary-color)';
+            tdIntervalo.style.borderBottom = '3px solid var(--primary-color)';
             trIntervalo.appendChild(tdIntervalo);
             
             // Adicionar células vazias para os dias da semana
