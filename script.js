@@ -379,7 +379,8 @@ function atualizarHorariosFim(horaInicio) {
     const limite = inicioMin + limiteHoras;
 
     // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00'];
+    // Incluindo 17:00 apenas para horário de término
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
 
     horarios.forEach(horario => {
         const [h, m] = horario.split(':').map(Number);
