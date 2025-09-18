@@ -348,7 +348,7 @@ function popularHorarios() {
     });
 
     // Horários da tarde - removendo 13:30, 14:30, 15:30, 16:30 e alterando 13:00 para 13:10
-    const horariosTarde = ['13:10', '14:00', '15:00', '16:00', '17:00'];
+    const horariosTarde = ['13:10', '14:00', '15:00', '16:00'];
     
     horariosTarde.forEach(horario => {
         horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
@@ -379,7 +379,7 @@ function atualizarHorariosFim(horaInicio) {
     const limite = inicioMin + limiteHoras;
 
     // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00'];
 
     horarios.forEach(horario => {
         const [h, m] = horario.split(':').map(Number);
@@ -531,7 +531,7 @@ async function carregarAgendamentos() {
 
 async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
     // Usar os horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00'];
 
     // Calcular dinamicamente a semana baseada no índice selecionado
     const hoje = new Date();
