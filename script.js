@@ -341,13 +341,11 @@ function popularHorarios() {
     horaInicioSelect.innerHTML = '<option value="">Selecione o horário</option>';
 
     // Horários da manhã - removendo 07:30, 08:30, 09:30, 10:30 e alterando 07:00 para 07:10
-    const horariosManha = ['07:10', '08:00', '09:00', '10:00', '11:00'];
+    const horariosManha = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00'];
     
     horariosManha.forEach(horario => {
         horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
     });
-
-    horaInicioSelect.innerHTML += `<option disabled>------- Intervalo -------</option>`;
 
     // Horários da tarde - removendo 13:30, 14:30, 15:30, 16:30 e alterando 13:00 para 13:10
     const horariosTarde = ['13:10', '14:00', '15:00', '16:00', '17:00'];
@@ -357,17 +355,29 @@ function popularHorarios() {
     });
 }
 
-// Atualizar hora fim com limite de 2 horas
+// Atualizar hora fim com limites específicos por horário
 function atualizarHorariosFim(horaInicio) {
     const horaFimSelect = document.getElementById('hora-fim');
     horaFimSelect.innerHTML = '<option value="">Selecione o horário</option>';
 
     const [hIni, mIni] = horaInicio.split(':').map(Number);
     const inicioMin = hIni * 60 + mIni;
-    const limite = inicioMin + 120;
+    
+    // Definir limites específicos por horário
+    let limiteHoras;
+    if (horaInicio === '08:00') {
+        limiteHoras = 180; // 3 horas
+    } else if (horaInicio === '09:00') {
+        limiteHoras = 120; // 2 horas
+    } else if (horaInicio === '10:00' || horaInicio === '11:00' || horaInicio === '12:00') {
+        limiteHoras = 60; // 1 hora
+    } else {
+        limiteHoras = 240; // 4 horas para outros horários
+    }
+    const limite = inicioMin + limiteHoras;
 
     // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
 
     horarios.forEach(horario => {
         const [h, m] = horario.split(':').map(Number);
@@ -519,7 +529,7 @@ async function carregarAgendamentos() {
 
 async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
     // Usar os horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
 
     // Calcular dinamicamente a semana baseada no índice selecionado
     const hoje = new Date();
@@ -615,31 +625,6 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
 
     // Criar linhas da tabela
     horarios.forEach((horario, index) => {
-        // Adicionar divisor de intervalo após 11:00 e antes de 13:10
-        if (horario === '13:10' && index > 0 && horarios[index - 1] === '11:00') {
-            const trIntervalo = document.createElement('tr');
-            trIntervalo.className = 'intervalo-almoco';
-            trIntervalo.style.height = '30px'; // Linha mais estreita
-            
-            const tdIntervalo = document.createElement('td');
-            tdIntervalo.className = 'horario-cell intervalo-cell';
-            tdIntervalo.innerHTML = '&nbsp;'; // Célula vazia
-            tdIntervalo.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-            tdIntervalo.style.borderTop = '3px solid var(--primary-color)';
-            tdIntervalo.style.borderBottom = '3px solid var(--primary-color)';
-            trIntervalo.appendChild(tdIntervalo);
-            
-            // Adicionar células vazias para os dias da semana
-            for (let i = 0; i < 5; i++) {
-                const tdVazio = document.createElement('td');
-                tdVazio.style.backgroundColor = 'rgba(255, 255, 255, 0.02)'; // Mesma cor dos dias vazios
-                tdVazio.style.borderTop = '2px solid var(--border-color)';
-        tdVazio.style.borderBottom = '2px solid var(--border-color)';
-                trIntervalo.appendChild(tdVazio);
-            }
-            
-            tabelaBody.appendChild(trIntervalo);
-        }
         
         const tr = document.createElement('tr');
         
