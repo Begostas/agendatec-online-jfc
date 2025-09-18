@@ -248,12 +248,12 @@ function validarHorarioEscolar(input, tipo) {
     const [h, m] = horario.split(':').map(Number);
     const minutos = h * 60 + m;
     
-    // Período válido: 7:00-17:00 (horário escolar completo)
-    const validoEscolar = (minutos >= 420 && minutos <= 1020); // 7:00 às 17:00
+    // Período válido: 7:10-17:00 (horário escolar atualizado)
+    const validoEscolar = (minutos >= 430 && minutos <= 1020); // 7:10 às 17:00
     
     if (!validoEscolar) {
         input.style.borderColor = 'var(--accent-color)';
-        input.title = `Horário de ${tipo} deve estar entre 7h e 17h`;
+        input.title = `Horário de ${tipo} deve estar entre 7h10 e 17h`;
     } else {
         input.style.borderColor = '';
         input.title = '';
@@ -340,27 +340,21 @@ function popularHorarios() {
 
     horaInicioSelect.innerHTML = '<option value="">Selecione o horário</option>';
 
-    for (let hora = 7; hora <= 10; hora++) {
-        for (let minuto = 0; minuto < 60; minuto += 30) {
-            if (hora === 10 && minuto > 30) break;
-            const h = hora.toString().padStart(2, '0');
-            const m = minuto.toString().padStart(2, '0');
-            const horario = `${h}:${m}`;
-            horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
-        }
-    }
+    // Horários da manhã - removendo 07:30, 08:30, 09:30, 10:30 e alterando 07:00 para 07:10
+    const horariosManha = ['07:10', '08:00', '09:00', '10:00', '11:00'];
+    
+    horariosManha.forEach(horario => {
+        horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
+    });
 
     horaInicioSelect.innerHTML += `<option disabled>------- Intervalo -------</option>`;
 
-    for (let hora = 13; hora <= 16; hora++) {
-        for (let minuto = 0; minuto < 60; minuto += 30) {
-            if (hora === 16 && minuto > 30) break;
-            const h = hora.toString().padStart(2, '0');
-            const m = minuto.toString().padStart(2, '0');
-            const horario = `${h}:${m}`;
-            horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
-        }
-    }
+    // Horários da tarde - removendo 13:30, 14:30, 15:30, 16:30 e alterando 13:00 para 13:10
+    const horariosTarde = ['13:10', '14:00', '15:00', '16:00', '17:00'];
+    
+    horariosTarde.forEach(horario => {
+        horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
+    });
 }
 
 // Atualizar hora fim com limite de 2 horas
@@ -372,21 +366,8 @@ function atualizarHorariosFim(horaInicio) {
     const inicioMin = hIni * 60 + mIni;
     const limite = inicioMin + 120;
 
-    const horarios = [];
-
-    for (let h = 7; h <= 11; h++) {
-        for (let m = (h === 7 ? 30 : 0); m < 60; m += 30) {
-            if (h === 11 && m > 0) break;
-            horarios.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-        }
-    }
-
-    for (let h = 13; h <= 17; h++) {
-        for (let m = (h === 13 ? 30 : 0); m < 60; m += 30) {
-            if (h === 17 && m > 0) break;
-            horarios.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-        }
-    }
+    // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
 
     horarios.forEach(horario => {
         const [h, m] = horario.split(':').map(Number);
@@ -471,8 +452,8 @@ function gerarOpcoesSemanasF() {
         segundaFeiraBase.setDate(hoje.getDate() - diasVoltarParaSegunda);
     }
     
-    // Gerar 3 opções de semanas
-    for (let i = 0; i < 3; i++) {
+    // Gerar 5 opções de semanas
+    for (let i = 0; i < 5; i++) {
         const segundaFeira = new Date(segundaFeiraBase);
         segundaFeira.setDate(segundaFeiraBase.getDate() + (i * 7));
         
@@ -537,22 +518,8 @@ async function carregarAgendamentos() {
 }
 
 async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
-    // Gerar horários de 7:00 às 17:00 em intervalos de 30 minutos
-    const horarios = ['07:00']; // Adicionar 07:00 no início
-    for (let h = 7; h <= 16; h++) {
-        for (let m = (h === 7 ? 30 : 0); m < 60; m += 30) {
-            if (h === 16 && m > 30) break;
-            const horario = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-            
-            // Pular horários do intervalo do almoço
-            if (horario === '11:30' || horario === '12:00' || horario === '12:30') {
-                continue;
-            }
-            
-            horarios.push(horario);
-        }
-    }
-    horarios.push('17:00');
+    // Usar os horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
 
     // Calcular dinamicamente a semana baseada no índice selecionado
     const hoje = new Date();
@@ -841,10 +808,10 @@ form.addEventListener('submit', async (e) => {
     }
 
     // Validar se os horários estão dentro do período escolar
-    const periodoEscolar = (inicioMinutos >= 420 && fimMinutos <= 1020); // 7:00 às 17:00
+    const periodoEscolar = (inicioMinutos >= 430 && fimMinutos <= 1020); // 7:10 às 17:00
     
     if (!periodoEscolar) {
-        alert('Os horários devem estar dentro do período escolar: 7h às 17h.');
+        alert('Os horários devem estar dentro do período escolar: 7h10 às 17h.');
         return;
     }
 
@@ -1057,11 +1024,10 @@ function gerarPDF() {
     
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text('Escola Municipal Júlio Fernandes Colino', 20, 30);
     
     const hoje = new Date();
     const dataRelatorio = formatDateTimeDisplay(hoje);
-    doc.text(`Relatório gerado em: ${dataRelatorio}`, 20, 40);
+    doc.text(`Relatório gerado em: ${dataRelatorio}`, 20, 30);
 
     // Preparar dados para a tabela
     const colunas = ['Nome', 'Turma', 'Equipamentos', 'Data', 'Horário', 'Mensagem'];
