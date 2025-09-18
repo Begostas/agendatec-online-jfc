@@ -369,8 +369,10 @@ function atualizarHorariosFim(horaInicio) {
         limiteHoras = 180; // 3 horas
     } else if (horaInicio === '09:00') {
         limiteHoras = 120; // 2 horas
-    } else if (horaInicio === '10:00' || horaInicio === '11:00' || horaInicio === '12:00') {
+    } else if (horaInicio === '10:00' || horaInicio === '12:00') {
         limiteHoras = 60; // 1 hora
+    } else if (horaInicio === '11:00') {
+        limiteHoras = 120; // 2 horas - até 13:00
     } else {
         limiteHoras = 240; // 4 horas para outros horários
     }
@@ -462,8 +464,8 @@ function gerarOpcoesSemanasF() {
         segundaFeiraBase.setDate(hoje.getDate() - diasVoltarParaSegunda);
     }
     
-    // Gerar 5 opções de semanas
-    for (let i = 0; i < 5; i++) {
+    // Gerar 7 opções de semanas
+    for (let i = 0; i < 7; i++) {
         const segundaFeira = new Date(segundaFeiraBase);
         segundaFeira.setDate(segundaFeiraBase.getDate() + (i * 7));
         
