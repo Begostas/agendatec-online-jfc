@@ -503,25 +503,13 @@ footer a:hover, header a:hover {
     color-scheme: dark;
 }
 
-.theme-badge {
-    display: inline-block;
-    background-color: var(--primary-color);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    margin-top: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
 
-.theme-badge i {
-    margin-right: 5px;
-    color: white;
-}
 
 /* Ajustes para tema escuro */
 ::-webkit-calendar-picker-indicator {
-    filter: invert(1);
+    filter: invert(1) brightness(2);
+    opacity: 1;
+    cursor: pointer;
 }
 
 select option {
