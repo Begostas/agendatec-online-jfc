@@ -327,6 +327,18 @@ function setupCheckboxItems() {
                     }
                 });
             }
+            
+            // Lógica para permitir apenas um espaço selecionado
+            if (checkbox.classList.contains('espaco-checkbox') && checkbox.checked) {
+                const outrosEspacos = document.querySelectorAll('.espaco-checkbox');
+                outrosEspacos.forEach(outroEspaco => {
+                    if (outroEspaco !== checkbox && outroEspaco.checked) {
+                        outroEspaco.checked = false;
+                        const outroEspacoItem = outroEspaco.closest('.checkbox-item');
+                        outroEspacoItem.classList.remove('selected');
+                    }
+                });
+            }
         });
         
         // Estado inicial
@@ -764,6 +776,15 @@ form.addEventListener('submit', async (e) => {
     const lousasSelecionadas = equipamentos.filter(eq => eq.includes('Lousa'));
     if (lousasSelecionadas.length > 1) {
         alert('Não é permitido agendar mais de uma lousa simultaneamente. Por favor, selecione apenas uma lousa.');
+        return;
+    }
+
+    // Validação de múltiplos espaços
+    const espacosSelecionados = equipamentos.filter(eq => 
+        eq === 'Sala de Informática' || eq === 'Anfiteatro' || eq === 'Biblioteca'
+    );
+    if (espacosSelecionados.length > 1) {
+        alert('Não é permitido agendar mais de um espaço simultaneamente. Por favor, selecione apenas um espaço.');
         return;
     }
 
