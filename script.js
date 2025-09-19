@@ -228,7 +228,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
+    const lousaCheckboxes = document.querySelectorAll('.lousa-checkbox');
+    lousaCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                lousaCheckboxes.forEach(other => {
+                    if (other !== this) other.checked = false;
+                });
+            }
+        });
+    });
 });
 
 // Função para validar se o horário está dentro do período escolar
@@ -274,6 +283,18 @@ function validarOrdemHorarios() {
     }
 }
 
+// Função auxiliar para desmarcar checkbox por valor
+function desmarcarCheckbox(valor) {
+    const checkbox = document.querySelector(`input[value="${valor}"]`);
+    if (checkbox && checkbox.checked) {
+        checkbox.checked = false;
+        const checkboxItem = checkbox.closest('.checkbox-item');
+        if (checkboxItem) {
+            checkboxItem.classList.remove('selected');
+        }
+    }
+}
+
 // Função para configurar caixas clicáveis de equipamentos
 function setupCheckboxItems() {
     const checkboxItems = document.querySelectorAll('.checkbox-item');
@@ -306,6 +327,65 @@ function setupCheckboxItems() {
         // Evento de mudança no checkbox
         checkbox.addEventListener('change', function() {
             updateVisualState();
+            
+            // Lógica para permitir apenas uma lousa selecionada
+            if (checkbox.classList.contains('lousa-checkbox') && checkbox.checked) {
+                const outrasLousas = document.querySelectorAll('.lousa-checkbox');
+                outrasLousas.forEach(outraLousa => {
+                    if (outraLousa !== checkbox && outraLousa.checked) {
+                        outraLousa.checked = false;
+                        const outraLousaItem = outraLousa.closest('.checkbox-item');
+                        outraLousaItem.classList.remove('selected');
+                    }
+                });
+            }
+            
+            // Lógica para permitir apenas um espaço selecionado
+            if (checkbox.classList.contains('espaco-checkbox') && checkbox.checked) {
+                const outrosEspacos = document.querySelectorAll('.espaco-checkbox');
+                outrosEspacos.forEach(outroEspaco => {
+                    if (outroEspaco !== checkbox && outroEspaco.checked) {
+                        outroEspaco.checked = false;
+                        const outroEspacoItem = outroEspaco.closest('.checkbox-item');
+                        outroEspacoItem.classList.remove('selected');
+                    }
+                });
+            }
+            
+            // Lógica condicional entre espaços e lousas
+            if (checkbox.checked) {
+                const checkboxValue = checkbox.value;
+                
+                // Regras para espaços
+                if (checkboxValue === 'Sala de Informática') {
+                    // Remove Lousa Anfiteatro e Lousa Biblioteca
+                    desmarcarCheckbox('Lousa Anfiteatro');
+                    desmarcarCheckbox('Lousa Biblioteca');
+                } else if (checkboxValue === 'Anfiteatro') {
+                    // Remove Lousa Laboratório e Lousa Biblioteca
+                    desmarcarCheckbox('Lousa Laboratório');
+                    desmarcarCheckbox('Lousa Biblioteca');
+                } else if (checkboxValue === 'Biblioteca') {
+                    // Remove Lousa Laboratório e Lousa Anfiteatro
+                    desmarcarCheckbox('Lousa Laboratório');
+                    desmarcarCheckbox('Lousa Anfiteatro');
+                }
+                
+                // Regras para lousas
+                else if (checkboxValue === 'Lousa Laboratório') {
+                    // Remove Anfiteatro e Biblioteca
+                    desmarcarCheckbox('Anfiteatro');
+                    desmarcarCheckbox('Biblioteca');
+                } else if (checkboxValue === 'Lousa Anfiteatro') {
+                    // Remove Sala de Informática e Biblioteca
+                    desmarcarCheckbox('Sala de Informática');
+                    desmarcarCheckbox('Biblioteca');
+                } else if (checkboxValue === 'Lousa Biblioteca') {
+                    // Remove Sala de Informática e Anfiteatro
+                    desmarcarCheckbox('Sala de Informática');
+                    desmarcarCheckbox('Anfiteatro');
+                }
+            }
         });
         
         // Estado inicial
@@ -739,48 +819,19 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Validação de associações válidas entre espaços e lousas
-    const associacoesValidas = [
-        ['Sala de Informática', 'Lousa Laboratório'],
-        ['Anfiteatro', 'Lousa Anfiteatro'],
-        ['Biblioteca', 'Lousa Biblioteca']
-    ];
-
-    // Verificar se há espaços e lousas selecionados
-    const espacosSelecionados = equipamentos.filter(eq => 
-        eq === 'Sala de Informática' || eq === 'Anfiteatro' || eq === 'Biblioteca'
-    );
+    // Validação de múltiplas lousas
     const lousasSelecionadas = equipamentos.filter(eq => eq.includes('Lousa'));
-
-    // Se há tanto espaço quanto lousa selecionados, verificar se a associação é válida
-    if (espacosSelecionados.length > 0 && lousasSelecionadas.length > 0) {
-        let associacaoValida = false;
-        
-        for (const [espaco, lousa] of associacoesValidas) {
-            if (espacosSelecionados.includes(espaco) && lousasSelecionadas.includes(lousa)) {
-                // Verificar se não há outros espaços ou lousas selecionados além desta associação
-                if (espacosSelecionados.length === 1 && lousasSelecionadas.length === 1) {
-                    associacaoValida = true;
-                    break;
-                }
-            }
-        }
-        
-        if (!associacaoValida) {
-            alert('Associações válidas:\n• Sala de Informática + Lousa Laboratório\n• Anfiteatro + Lousa Anfiteatro\n• Biblioteca + Lousa Biblioteca\n\nPor favor, selecione uma associação válida ou apenas um item.');
-            return;
-        }
-    }
-
-    // Validação para múltiplos espaços sem lousa
-    if (espacosSelecionados.length > 1) {
-        alert('Não é permitido selecionar múltiplos espaços. Por favor, selecione apenas um espaço.');
+    if (lousasSelecionadas.length > 1) {
+        alert('Não é permitido agendar mais de uma lousa simultaneamente. Por favor, selecione apenas uma lousa.');
         return;
     }
 
-    // Validação para múltiplas lousas sem espaço
-    if (lousasSelecionadas.length > 1) {
-        alert('Não é permitido selecionar múltiplas lousas. Por favor, selecione apenas uma lousa.');
+    // Validação de múltiplos espaços
+    const espacosSelecionados = equipamentos.filter(eq => 
+        eq === 'Sala de Informática' || eq === 'Anfiteatro' || eq === 'Biblioteca'
+    );
+    if (espacosSelecionados.length > 1) {
+        alert('Não é permitido agendar mais de um espaço simultaneamente. Por favor, selecione apenas um espaço.');
         return;
     }
 
