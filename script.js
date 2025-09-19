@@ -283,18 +283,6 @@ function validarOrdemHorarios() {
     }
 }
 
-// Função auxiliar para desmarcar checkbox por valor
-function desmarcarCheckbox(valor) {
-    const checkbox = document.querySelector(`input[value="${valor}"]`);
-    if (checkbox && checkbox.checked) {
-        checkbox.checked = false;
-        const checkboxItem = checkbox.closest('.checkbox-item');
-        if (checkboxItem) {
-            checkboxItem.classList.remove('selected');
-        }
-    }
-}
-
 // Função para configurar caixas clicáveis de equipamentos
 function setupCheckboxItems() {
     const checkboxItems = document.querySelectorAll('.checkbox-item');
@@ -350,41 +338,6 @@ function setupCheckboxItems() {
                         outroEspacoItem.classList.remove('selected');
                     }
                 });
-            }
-            
-            // Lógica condicional entre espaços e lousas
-            if (checkbox.checked) {
-                const checkboxValue = checkbox.value;
-                
-                // Regras para espaços
-                if (checkboxValue === 'Sala de Informática') {
-                    // Remove Lousa Anfiteatro e Lousa Biblioteca
-                    desmarcarCheckbox('Lousa Anfiteatro');
-                    desmarcarCheckbox('Lousa Biblioteca');
-                } else if (checkboxValue === 'Anfiteatro') {
-                    // Remove Lousa Laboratório e Lousa Biblioteca
-                    desmarcarCheckbox('Lousa Laboratório');
-                    desmarcarCheckbox('Lousa Biblioteca');
-                } else if (checkboxValue === 'Biblioteca') {
-                    // Remove Lousa Laboratório e Lousa Anfiteatro
-                    desmarcarCheckbox('Lousa Laboratório');
-                    desmarcarCheckbox('Lousa Anfiteatro');
-                }
-                
-                // Regras para lousas
-                else if (checkboxValue === 'Lousa Laboratório') {
-                    // Remove Anfiteatro e Biblioteca
-                    desmarcarCheckbox('Anfiteatro');
-                    desmarcarCheckbox('Biblioteca');
-                } else if (checkboxValue === 'Lousa Anfiteatro') {
-                    // Remove Sala de Informática e Biblioteca
-                    desmarcarCheckbox('Sala de Informática');
-                    desmarcarCheckbox('Biblioteca');
-                } else if (checkboxValue === 'Lousa Biblioteca') {
-                    // Remove Sala de Informática e Anfiteatro
-                    desmarcarCheckbox('Sala de Informática');
-                    desmarcarCheckbox('Anfiteatro');
-                }
             }
         });
         
