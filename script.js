@@ -347,8 +347,8 @@ function popularHorarios() {
         horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
     });
 
-    // Horários da tarde - removendo 13:30, 14:30, 15:30, 16:30 e alterando 13:00 para 13:10
-    const horariosTarde = ['13:10', '14:00', '15:00', '16:00'];
+    // Horários da tarde - removendo 13:30, 14:30, 15:30, 16:30 e alterando 13:10 para 13:00
+    const horariosTarde = ['13:00', '14:00', '15:00', '16:00'];
     
     horariosTarde.forEach(horario => {
         horaInicioSelect.innerHTML += `<option value="${horario}">${horario}</option>`;
@@ -372,17 +372,17 @@ function atualizarHorariosFim(horaInicio) {
     } else if (horaInicio === '10:00') {
         limiteHoras = 60; // 1 hora
     } else if (horaInicio === '12:00') {
-        limiteHoras = 70; // 1 hora e 10 minutos - força 13:10 como única opção
+        limiteHoras = 60; // 1 hora - força 13:00 como única opção
     } else if (horaInicio === '11:00') {
-        limiteHoras = 120; // 2 horas - até 13:00
+        limiteHoras = 120; // 2 horas - permite 12:00 e 13:00 como opções
     } else {
         limiteHoras = 240; // 4 horas para outros horários
     }
     const limite = inicioMin + limiteHoras;
 
-    // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
-    // Incluindo 17:00 apenas para horário de término
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00', '17:00'];
+    // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, removendo 13:10
+    // Incluindo 13:00 e 17:00 apenas para horário de término
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
     horarios.forEach(horario => {
         const [h, m] = horario.split(':').map(Number);
@@ -533,8 +533,8 @@ async function carregarAgendamentos() {
 }
 
 async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
-    // Usar os horários atualizados - removendo horários :30 e alterando 07:00->07:10, 13:00->13:10
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:10', '14:00', '15:00', '16:00'];
+    // Usar os horários atualizados - removendo horários :30 e alterando 07:00->07:10, removendo 13:10
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
 
     // Calcular dinamicamente a semana baseada no índice selecionado
     const hoje = new Date();
@@ -806,12 +806,7 @@ form.addEventListener('submit', async (e) => {
 
 
 
-    // Validar limite de 2 horas
-    const duracaoMinutos = fimMinutos - inicioMinutos;
-    if (duracaoMinutos > 120) {
-        alert('O agendamento não pode exceder 2 horas consecutivas.');
-        return;
-    }
+
 
     // Verificar se a data não é sábado ou domingo
     const diaSemana = dataSelecionada.getDay();
