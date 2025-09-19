@@ -228,16 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const lousaCheckboxes = document.querySelectorAll('.lousa-checkbox');
-    lousaCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            if (this.checked) {
-                lousaCheckboxes.forEach(other => {
-                    if (other !== this) other.checked = false;
-                });
-            }
-        });
-    });
+
 });
 
 // Função para validar se o horário está dentro do período escolar
@@ -315,86 +306,6 @@ function setupCheckboxItems() {
         // Evento de mudança no checkbox
         checkbox.addEventListener('change', function() {
             updateVisualState();
-            
-            // Lógica para permitir apenas uma lousa selecionada
-            if (checkbox.classList.contains('lousa-checkbox') && checkbox.checked) {
-                const outrasLousas = document.querySelectorAll('.lousa-checkbox');
-                outrasLousas.forEach(outraLousa => {
-                    if (outraLousa !== checkbox && outraLousa.checked) {
-                        outraLousa.checked = false;
-                        const outraLousaItem = outraLousa.closest('.checkbox-item');
-                        outraLousaItem.classList.remove('selected');
-                    }
-                });
-            }
-            
-            // Lógica para permitir apenas um espaço selecionado
-            if (checkbox.classList.contains('espaco-checkbox') && checkbox.checked) {
-                const outrosEspacos = document.querySelectorAll('.espaco-checkbox');
-                outrosEspacos.forEach(outroEspaco => {
-                    if (outroEspaco !== checkbox && outroEspaco.checked) {
-                        outroEspaco.checked = false;
-                        const outroEspacoItem = outroEspaco.closest('.checkbox-item');
-                        outroEspacoItem.classList.remove('selected');
-                    }
-                });
-                
-                // Associações obrigatórias entre espaços e lousas
-                const espacoValue = checkbox.value;
-                const todasLousas = document.querySelectorAll('.lousa-checkbox');
-                
-                // Desmarcar todas as lousas primeiro
-                todasLousas.forEach(lousa => {
-                    lousa.checked = false;
-                    const lousaItem = lousa.closest('.checkbox-item');
-                    lousaItem.classList.remove('selected');
-                });
-                
-                // Marcar a lousa correspondente automaticamente
-                let lousaCorrespondente = null;
-                if (espacoValue === 'Sala de Informática') {
-                    lousaCorrespondente = document.querySelector('input[value="Lousa Laboratório"]');
-                } else if (espacoValue === 'Anfiteatro') {
-                    lousaCorrespondente = document.querySelector('input[value="Lousa Anfiteatro"]');
-                } else if (espacoValue === 'Biblioteca') {
-                    lousaCorrespondente = document.querySelector('input[value="Lousa Biblioteca"]');
-                }
-                
-                if (lousaCorrespondente) {
-                    lousaCorrespondente.checked = true;
-                    const lousaItem = lousaCorrespondente.closest('.checkbox-item');
-                    lousaItem.classList.add('selected');
-                }
-            }
-            
-            // Lógica para lousas - verificar se há espaço correspondente
-            if (checkbox.classList.contains('lousa-checkbox') && checkbox.checked) {
-                const lousaValue = checkbox.value;
-                const todosEspacos = document.querySelectorAll('.espaco-checkbox');
-                
-                // Desmarcar todos os espaços primeiro
-                todosEspacos.forEach(espaco => {
-                    espaco.checked = false;
-                    const espacoItem = espaco.closest('.checkbox-item');
-                    espacoItem.classList.remove('selected');
-                });
-                
-                // Marcar o espaço correspondente automaticamente
-                let espacoCorrespondente = null;
-                if (lousaValue === 'Lousa Laboratório') {
-                    espacoCorrespondente = document.querySelector('input[value="Sala de Informática"]');
-                } else if (lousaValue === 'Lousa Anfiteatro') {
-                    espacoCorrespondente = document.querySelector('input[value="Anfiteatro"]');
-                } else if (lousaValue === 'Lousa Biblioteca') {
-                    espacoCorrespondente = document.querySelector('input[value="Biblioteca"]');
-                }
-                
-                if (espacoCorrespondente) {
-                    espacoCorrespondente.checked = true;
-                    const espacoItem = espacoCorrespondente.closest('.checkbox-item');
-                    espacoItem.classList.add('selected');
-                }
-            }
         });
         
         // Estado inicial
@@ -828,44 +739,49 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Validação de múltiplas lousas
-    const lousasSelecionadas = equipamentos.filter(eq => eq.includes('Lousa'));
-    if (lousasSelecionadas.length > 1) {
-        alert('Não é permitido agendar mais de uma lousa simultaneamente. Por favor, selecione apenas uma lousa.');
-        return;
-    }
+    // Validação de associações válidas entre espaços e lousas
+    const associacoesValidas = [
+        ['Sala de Informática', 'Lousa Laboratório'],
+        ['Anfiteatro', 'Lousa Anfiteatro'],
+        ['Biblioteca', 'Lousa Biblioteca']
+    ];
 
-    // Validação de múltiplos espaços
+    // Verificar se há espaços e lousas selecionados
     const espacosSelecionados = equipamentos.filter(eq => 
         eq === 'Sala de Informática' || eq === 'Anfiteatro' || eq === 'Biblioteca'
     );
+    const lousasSelecionadas = equipamentos.filter(eq => eq.includes('Lousa'));
+
+    // Se há tanto espaço quanto lousa selecionados, verificar se a associação é válida
+    if (espacosSelecionados.length > 0 && lousasSelecionadas.length > 0) {
+        let associacaoValida = false;
+        
+        for (const [espaco, lousa] of associacoesValidas) {
+            if (espacosSelecionados.includes(espaco) && lousasSelecionadas.includes(lousa)) {
+                // Verificar se não há outros espaços ou lousas selecionados além desta associação
+                if (espacosSelecionados.length === 1 && lousasSelecionadas.length === 1) {
+                    associacaoValida = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!associacaoValida) {
+            alert('Associações válidas:\n• Sala de Informática + Lousa Laboratório\n• Anfiteatro + Lousa Anfiteatro\n• Biblioteca + Lousa Biblioteca\n\nPor favor, selecione uma associação válida ou apenas um item.');
+            return;
+        }
+    }
+
+    // Validação para múltiplos espaços sem lousa
     if (espacosSelecionados.length > 1) {
-        alert('Não é permitido agendar mais de um espaço simultaneamente. Por favor, selecione apenas um espaço.');
+        alert('Não é permitido selecionar múltiplos espaços. Por favor, selecione apenas um espaço.');
         return;
     }
 
-    // Validação de associações obrigatórias entre espaços e lousas
-    const associacoesValidas = {
-        'Sala de Informática': 'Lousa Laboratório',
-        'Anfiteatro': 'Lousa Anfiteatro',
-        'Biblioteca': 'Lousa Biblioteca'
-    };
-
-    // Verificar se há espaço selecionado sem sua lousa correspondente
-    for (const espaco of espacosSelecionados) {
-        const lousaCorrespondente = associacoesValidas[espaco];
-        if (!equipamentos.includes(lousaCorrespondente)) {
-            alert(`O espaço "${espaco}" deve ser agendado junto com "${lousaCorrespondente}".`);
-            return;
-        }
-    }
-
-    // Verificar se há lousa selecionada sem seu espaço correspondente
-    for (const [espaco, lousa] of Object.entries(associacoesValidas)) {
-        if (equipamentos.includes(lousa) && !equipamentos.includes(espaco)) {
-            alert(`A "${lousa}" deve ser agendada junto com "${espaco}".`);
-            return;
-        }
+    // Validação para múltiplas lousas sem espaço
+    if (lousasSelecionadas.length > 1) {
+        alert('Não é permitido selecionar múltiplas lousas. Por favor, selecione apenas uma lousa.');
+        return;
     }
 
     // Validação de data passada
