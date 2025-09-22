@@ -367,30 +367,13 @@ function popularHorarios() {
     });
 }
 
-// Atualizar hora fim com limites específicos por horário
+// Atualizar hora fim sem limites de quantidade
 function atualizarHorariosFim(horaInicio) {
     const horaFimSelect = document.getElementById('hora-fim');
     horaFimSelect.innerHTML = '<option value="">Selecione o horário</option>';
 
     const [hIni, mIni] = horaInicio.split(':').map(Number);
     const inicioMin = hIni * 60 + mIni;
-    
-    // Definir limites específicos por horário
-    let limiteHoras;
-    if (horaInicio === '08:00') {
-        limiteHoras = 180; // 3 horas
-    } else if (horaInicio === '09:00') {
-        limiteHoras = 120; // 2 horas
-    } else if (horaInicio === '10:00') {
-        limiteHoras = 60; // 1 hora
-    } else if (horaInicio === '12:00') {
-        limiteHoras = 60; // 1 hora - força 13:00 como única opção
-    } else if (horaInicio === '11:00') {
-        limiteHoras = 120; // 2 horas - permite 12:00 e 13:00 como opções
-    } else {
-        limiteHoras = 240; // 4 horas para outros horários
-    }
-    const limite = inicioMin + limiteHoras;
 
     // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, removendo 13:10
     // Incluindo 13:00 e 17:00 apenas para horário de término
@@ -399,7 +382,8 @@ function atualizarHorariosFim(horaInicio) {
     horarios.forEach(horario => {
         const [h, m] = horario.split(':').map(Number);
         const min = h * 60 + m;
-        if (min > inicioMin && min <= limite) {
+        // Apenas verificar se o horário de fim é posterior ao de início
+        if (min > inicioMin) {
             const option = document.createElement('option');
             option.value = horario;
             option.textContent = horario;
@@ -675,7 +659,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     
                     const nomeDiv = document.createElement('div');
                     nomeDiv.className = 'agendamento-nome';
-                    nomeDiv.textContent = ag.nome;
+                    nomeDiv.textContent = `${ag.nome} - ${ag.turma}`;
                     
                     const equipamentoDiv = document.createElement('div');
                     equipamentoDiv.className = 'agendamento-equipamento';
@@ -719,17 +703,6 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
         const equipamentosOrdenados = equipamentos.sort().join(',');
 
         for (const ag of agendamentos) {
-            // Verificar agendamento duplicado primeiro (mais rápido)
-            if (ag.nome === nome && ag.turma === turma && 
-                ag.horaInicio === horaInicio && ag.horaFim === horaFim) {
-                
-                const agEquipamentosOrdenados = ag.equipamentos.sort().join(',');
-                if (agEquipamentosOrdenados === equipamentosOrdenados) {
-                    alert('Agendamento não realizado, por favor cheque a lista de agendamentos.');
-                    return true;
-                }
-            }
-
             // Verificar conflito de horário
             const conflitoHorario =
                 (horaInicio >= ag.horaInicio && horaInicio < ag.horaFim) ||
