@@ -357,21 +357,50 @@ function atualizarHorariosFim(horaInicio) {
     const [hIni, mIni] = horaInicio.split(':').map(Number);
     const inicioMin = hIni * 60 + mIni;
 
+    // Definir limite máximo de horas baseado no horário de início
+    let limiteHoras;
+    const horaInicioStr = `${hIni.toString().padStart(2, '0')}:${mIni.toString().padStart(2, '0')}`;
+    
+    if (horaInicioStr === '08:00' || horaInicioStr === '14:00') {
+        limiteHoras = 3; // 8h ou 14h: máximo 3 horas
+    } else if (horaInicioStr === '09:00' || horaInicioStr === '11:00' || horaInicioStr === '15:00') {
+        limiteHoras = 2; // 9h, 11h ou 15h: máximo 2 horas
+    } else if (horaInicioStr === '10:00' || horaInicioStr === '12:00' || horaInicioStr === '16:00') {
+        limiteHoras = 1; // 10h, 12h ou 16h: máximo 1 hora
+    } else {
+        limiteHoras = 4; // Todos os outros: máximo 4 horas (padrão)
+    }
+
+    // Calcular horário máximo permitido
+    const maxMin = inicioMin + (limiteHoras * 60);
+
     // Usar os mesmos horários atualizados - removendo horários :30 e alterando 07:00->07:10, removendo 13:10
     // Incluindo 13:00 e 17:00 apenas para horário de término
     const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
+    console.log(`Horário início: ${horaInicioStr}, Limite: ${limiteHoras}h, Máximo permitido: ${Math.floor(maxMin/60)}:${(maxMin%60).toString().padStart(2, '0')}`);
+
     horarios.forEach(horario => {
         const [h, m] = horario.split(':').map(Number);
         const min = h * 60 + m;
-        // Apenas verificar se o horário de fim é posterior ao de início
-        if (min > inicioMin) {
+        
+        // Verificar se o horário de fim é posterior ao de início E dentro do limite
+        if (min > inicioMin && min <= maxMin) {
             const option = document.createElement('option');
             option.value = horario;
             option.textContent = horario;
             horaFimSelect.appendChild(option);
         }
     });
+
+    // Se não há opções disponíveis, mostrar mensagem informativa
+    if (horaFimSelect.children.length === 1) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = `Nenhum horário disponível (limite: ${limiteHoras}h)`;
+        option.disabled = true;
+        horaFimSelect.appendChild(option);
+    }
 }
 
 // Move agendamentos antigos para histórico
