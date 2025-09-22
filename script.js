@@ -703,15 +703,16 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
         const equipamentosOrdenados = equipamentos.sort().join(',');
 
         for (const ag of agendamentos) {
-            // Verificar conflito de horário
-            const conflitoHorario =
-                (horaInicio >= ag.horaInicio && horaInicio < ag.horaFim) ||
-                (horaFim > ag.horaInicio && horaFim <= ag.horaFim) ||
-                (horaInicio <= ag.horaInicio && horaFim >= ag.horaFim);
+            // Verificar conflito de horário - dois intervalos se sobrepõem se:
+            // o início de um é antes do fim do outro E o fim de um é depois do início do outro
+            const conflitoHorario = horaInicio < ag.horaFim && horaFim > ag.horaInicio;
+
+
 
             if (conflitoHorario) {
                 // Verificar conflito de equipamentos
                 const conflitoEquip = ag.equipamentos.some(eq => equipamentos.includes(eq));
+                
                 if (conflitoEquip) {
                     alert(`Conflito: O equipamento ${ag.equipamentos.join(', ')} já está agendado neste horário.`);
                     return true;
