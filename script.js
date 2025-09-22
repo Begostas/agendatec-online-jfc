@@ -262,25 +262,7 @@ function validarHorarioEscolar(input, tipo) {
 
 // Função para validar ordem dos horários
 function validarOrdemHorarios() {
-    const horaInicio = document.getElementById('hora-inicio').value;
-    const horaFim = document.getElementById('hora-fim').value;
-    
-    if (!horaInicio || !horaFim) return;
-    
-    const [hIni, mIni] = horaInicio.split(':').map(Number);
-    const [hFim, mFim] = horaFim.split(':').map(Number);
-    const inicioMinutos = hIni * 60 + mIni;
-    const fimMinutos = hFim * 60 + mFim;
-    
-    const horaFimInput = document.getElementById('hora-fim');
-    
-    if (inicioMinutos >= fimMinutos) {
-        horaFimInput.style.borderColor = 'var(--accent-color)';
-        horaFimInput.title = 'Horário de fim deve ser posterior ao horário de início';
-    } else {
-        horaFimInput.style.borderColor = '';
-        horaFimInput.title = '';
-    }
+    // Função removida - permite agendamentos com horário de término maior que inicial
 }
 
 // Função para configurar caixas clicáveis de equipamentos
@@ -681,6 +663,12 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
 }
 
 // Verifica conflito
+// Função auxiliar para converter horário (HH:MM) em minutos
+function horarioParaMinutos(horario) {
+    const [horas, minutos] = horario.split(':').map(Number);
+    return horas * 60 + minutos;
+}
+
 async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma, nome) {
     try {
         // Consulta otimizada: buscar apenas campos necessários
@@ -699,28 +687,35 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
             return false;
         }
 
-        // Pré-processar equipamentos para comparação mais rápida
-        const equipamentosOrdenados = equipamentos.sort().join(',');
+        // Converter horários para minutos para comparação precisa
+        const inicioMinutos = horarioParaMinutos(horaInicio);
+        const fimMinutos = horarioParaMinutos(horaFim);
 
         for (const ag of agendamentos) {
-            // Verificar conflito de horário - dois intervalos se sobrepõem se:
-            // o início de um é antes do fim do outro E o fim de um é depois do início do outro
-            const conflitoHorario = horaInicio < ag.horaFim && horaFim > ag.horaInicio;
+            // Converter horários do agendamento existente para minutos
+            const agInicioMinutos = horarioParaMinutos(ag.horaInicio);
+            const agFimMinutos = horarioParaMinutos(ag.horaFim);
 
+            // Verificar sobreposição de horários
+            // Dois intervalos se sobrepõem se: início1 < fim2 E fim1 > início2
+            // Agendamentos consecutivos (fim1 = início2 ou início1 = fim2) NÃO são conflito
+            const temSobreposicao = inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos;
 
+            console.log(`Verificando: Novo(${horaInicio}-${horaFim} = ${inicioMinutos}-${fimMinutos}min) vs Existente(${ag.horaInicio}-${ag.horaFim} = ${agInicioMinutos}-${agFimMinutos}min)`);
+            console.log(`Sobreposição: ${temSobreposicao} (${inicioMinutos} < ${agFimMinutos} = ${inicioMinutos < agFimMinutos}) && (${fimMinutos} > ${agInicioMinutos} = ${fimMinutos > agInicioMinutos})`);
 
-            if (conflitoHorario) {
+            if (temSobreposicao) {
                 // Verificar conflito de equipamentos
-                const conflitoEquip = ag.equipamentos.some(eq => equipamentos.includes(eq));
+                const equipamentosConflito = ag.equipamentos.filter(eq => equipamentos.includes(eq));
                 
-                if (conflitoEquip) {
-                    alert(`Conflito: O equipamento ${ag.equipamentos.join(', ')} já está agendado neste horário.`);
+                if (equipamentosConflito.length > 0) {
+                    alert(`Conflito de equipamento: ${equipamentosConflito.join(', ')} já está(ão) agendado(s) das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`);
                     return true;
                 }
 
                 // Verificar conflito de turma
                 if (ag.turma === turma) {
-                    alert('Já há um agendamento para esse horário. Por favor cheque a lista de agendamentos.');
+                    alert(`Conflito de turma: A turma "${turma}" já tem agendamento das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`);
                     return true;
                 }
             }
@@ -791,11 +786,7 @@ form.addEventListener('submit', async (e) => {
     const inicioMinutos = hIni * 60 + mIni;
     const fimMinutos = hFim * 60 + mFim;
 
-    // Validar se horário inicial é anterior ao final
-    if (inicioMinutos >= fimMinutos) {
-        alert('O horário de início deve ser anterior ao horário de término.');
-        return;
-    }
+
 
     // Validar se os horários estão dentro do período escolar
     const periodoEscolar = (inicioMinutos >= 430 && fimMinutos <= 1020); // 7:10 às 17:00
