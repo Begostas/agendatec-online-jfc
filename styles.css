@@ -694,6 +694,42 @@ select option {
     margin-bottom: 4px;
     font-size: 0.85rem;
     line-height: 1.2;
+    position: relative;
+    cursor: pointer;
+}
+
+/* Tooltip para observações dos agendamentos */
+.agendamento-item[data-mensagem]:hover::after {
+    content: attr(data-mensagem);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    max-width: 200px;
+    white-space: normal;
+    word-wrap: break-word;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    margin-bottom: 5px;
+}
+
+.agendamento-item[data-mensagem]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+    z-index: 1001;
+    margin-bottom: -5px;
 }
 
 .agendamento-nome {
