@@ -3,6 +3,7 @@
   "routes": [
     { "handle": "filesystem" },
     { "src": "/api/agendamentos", "dest": "/api/agendamentos.js" },
+    { "src": "/api/futuros", "dest": "/api/futuros.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "github": {
