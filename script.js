@@ -914,7 +914,7 @@ async function enviarNotificacaoEmail(dadosAgendamento) {
 
         // Parâmetros do template de e-mail
         const templateParams = {
-            to_email: 'eric.benaglia@gmail.com',
+            to_email: 'eric.benaglia@edu.treslagoas.ms.gov.br',
             from_name: 'Sistema de Agendamento - AgendaTec',
             professor_nome: dadosAgendamento.nome,
             professor_turma: dadosAgendamento.turma,
@@ -1153,3 +1153,220 @@ if (localStorage.getItem('google_calendar_expires_at')) {
     localStorage.removeItem('google_calendar_expires_at');
     console.log('Data de expiração do Google Calendar removida do localStorage');
 }
+
+// ===== SUPABASE REALTIME CONFIGURATION =====
+
+// Configuração do Realtime para monitorar alterações na tabela agendamentos
+let realtimeChannel = null;
+
+function iniciarRealtimeMonitoring() {
+    // Remove canal anterior se existir
+    if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+    }
+
+    // Cria novo canal para monitorar a tabela agendamentos
+    realtimeChannel = supabase
+        .channel('agendamentos-changes')
+        .on(
+            'postgres_changes',
+            {
+                event: '*', // Monitora INSERT, UPDATE, DELETE
+                schema: 'public',
+                table: 'agendamentos'
+            },
+            async (payload) => {
+                console.log('Alteração detectada na tabela agendamentos:', payload);
+                
+                // Atualiza a tabela automaticamente
+                await atualizarTabelaRealtime(payload);
+            }
+        )
+        .subscribe((status) => {
+            console.log('Status do Realtime:', status);
+            if (status === 'SUBSCRIBED') {
+                console.log('✅ Realtime conectado com sucesso!');
+            } else if (status === 'CHANNEL_ERROR') {
+                console.error('❌ Erro na conexão Realtime');
+                // Tenta reconectar após 5 segundos
+                setTimeout(iniciarRealtimeMonitoring, 5000);
+            }
+        });
+}
+
+async function atualizarTabelaRealtime(payload) {
+    try {
+        const { eventType, new: newRecord, old: oldRecord } = payload;
+        
+        console.log(`Evento: ${eventType}`, { newRecord, oldRecord });
+        
+        // Recarrega os agendamentos para manter consistência
+        await carregarAgendamentos();
+        
+        // Atualiza a tabela semanal
+        const semanaAtual = document.getElementById('week-selector').value || 0;
+        await criarTabelaSemanal(agendamentos, parseInt(semanaAtual));
+        
+        // Mostra notificação visual para o usuário
+        mostrarNotificacaoRealtime(eventType, newRecord, oldRecord);
+        
+    } catch (error) {
+        console.error('Erro ao atualizar tabela em tempo real:', error);
+    }
+}
+
+function mostrarNotificacaoRealtime(eventType, newRecord, oldRecord) {
+    let mensagem = '';
+    let tipo = 'info';
+    
+    switch (eventType) {
+        case 'INSERT':
+            mensagem = `📅 Novo agendamento criado: ${newRecord.nome || 'Sem nome'}`;
+            tipo = 'success';
+            break;
+        case 'UPDATE':
+            mensagem = `✏️ Agendamento atualizado: ${newRecord.nome || oldRecord.nome || 'Sem nome'}`;
+            tipo = 'warning';
+            break;
+        case 'DELETE':
+            mensagem = `🗑️ Agendamento removido: ${oldRecord.nome || 'Sem nome'}`;
+            tipo = 'error';
+            break;
+        default:
+            mensagem = '🔄 Tabela de agendamentos atualizada';
+    }
+    
+    // Cria elemento de notificação
+    const notificacao = document.createElement('div');
+    notificacao.className = `realtime-notification ${tipo}`;
+    notificacao.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-message">${mensagem}</span>
+            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    // Adiciona estilos se não existirem
+    if (!document.getElementById('realtime-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'realtime-styles';
+        styles.textContent = `
+            .realtime-notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                max-width: 400px;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideInRight 0.3s ease-out;
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+            }
+            
+            .realtime-notification.success {
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+            }
+            
+            .realtime-notification.warning {
+                background: linear-gradient(135deg, #FF9800, #f57c00);
+                color: white;
+            }
+            
+            .realtime-notification.error {
+                background: linear-gradient(135deg, #f44336, #d32f2f);
+                color: white;
+            }
+            
+            .realtime-notification.info {
+                background: linear-gradient(135deg, #2196F3, #1976D2);
+                color: white;
+            }
+            
+            .notification-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .notification-close {
+                background: none;
+                border: none;
+                color: inherit;
+                font-size: 18px;
+                cursor: pointer;
+                padding: 0;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: background-color 0.2s;
+            }
+            
+            .notification-close:hover {
+                background-color: rgba(255,255,255,0.2);
+            }
+            
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+    
+    // Adiciona notificação ao DOM
+    document.body.appendChild(notificacao);
+    
+    // Remove automaticamente após 5 segundos
+    setTimeout(() => {
+        if (notificacao.parentElement) {
+            notificacao.style.animation = 'slideInRight 0.3s ease-out reverse';
+            setTimeout(() => notificacao.remove(), 300);
+        }
+    }, 5000);
+}
+
+// Função para limpar conexões Realtime ao sair da página
+function limparRealtimeConnections() {
+    if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+        console.log('🔌 Conexão Realtime encerrada');
+    }
+}
+
+// Event listeners para gerenciar conexões
+window.addEventListener('beforeunload', limparRealtimeConnections);
+window.addEventListener('unload', limparRealtimeConnections);
+
+// Inicia o monitoramento Realtime quando a página carrega
+document.addEventListener('DOMContentLoaded', () => {
+    // Aguarda um pouco para garantir que o Supabase está inicializado
+    setTimeout(iniciarRealtimeMonitoring, 1000);
+});
+
+// Reconecta automaticamente se a conexão for perdida
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && realtimeChannel) {
+        // Página ficou visível novamente, verifica conexão
+        setTimeout(() => {
+            if (realtimeChannel.state !== 'joined') {
+                console.log('🔄 Reconectando Realtime...');
+                iniciarRealtimeMonitoring();
+            }
+        }, 1000);
+    }
+});
+
+console.log('🚀 Supabase Realtime configurado com sucesso!');
