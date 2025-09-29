@@ -665,6 +665,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     // Adicionar tooltip com mensagem se existir
                     if (ag.mensagem && ag.mensagem.trim() !== '') {
                         agendamentoDiv.setAttribute('data-mensagem', ag.mensagem);
+                        setupTooltip(agendamentoDiv, ag.mensagem);
                     }
                     
                     const nomeDiv = document.createElement('div');
@@ -1152,6 +1153,109 @@ if (localStorage.getItem('google_calendar_expires_at')) {
     localStorage.removeItem('google_calendar_expires_at');
     console.log('Data de expiração do Google Calendar removida do localStorage');
 }
+
+// ===== SISTEMA DE TOOLTIP PERSONALIZADO =====
+
+let currentTooltip = null;
+
+function createTooltip() {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'custom-tooltip';
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
+
+function showTooltip(element, message, event) {
+    // Remove tooltip anterior se existir
+    hideTooltip();
+    
+    // Cria novo tooltip
+    currentTooltip = createTooltip();
+    currentTooltip.textContent = message;
+    
+    // Posiciona o tooltip próximo ao cursor
+    positionTooltip(currentTooltip, event);
+    
+    // Mostra o tooltip com animação
+    setTimeout(() => {
+        if (currentTooltip) {
+            currentTooltip.classList.add('show');
+        }
+    }, 10);
+}
+
+function hideTooltip() {
+    if (currentTooltip) {
+        currentTooltip.classList.remove('show');
+        setTimeout(() => {
+            if (currentTooltip && currentTooltip.parentNode) {
+                currentTooltip.parentNode.removeChild(currentTooltip);
+            }
+            currentTooltip = null;
+        }, 200);
+    }
+}
+
+function positionTooltip(tooltip, event) {
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Posição inicial: acima do cursor
+    let tooltipX = mouseX + scrollX;
+    let tooltipY = mouseY + scrollY - 40;
+    
+    // Ajusta posição para não sair da tela
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // Ajuste horizontal
+    if (tooltipX + tooltipRect.width > windowWidth + scrollX) {
+        tooltipX = windowWidth + scrollX - tooltipRect.width - 10;
+    }
+    if (tooltipX < scrollX + 10) {
+        tooltipX = scrollX + 10;
+    }
+    
+    // Ajuste vertical - se não cabe acima, coloca abaixo
+    if (tooltipY < scrollY + 10) {
+        tooltipY = mouseY + scrollY + 20;
+        // Muda a seta para apontar para cima
+        tooltip.style.setProperty('--arrow-position', 'top');
+        tooltip.classList.add('arrow-top');
+    } else {
+        tooltip.style.setProperty('--arrow-position', 'bottom');
+        tooltip.classList.remove('arrow-top');
+    }
+    
+    tooltip.style.left = tooltipX + 'px';
+    tooltip.style.top = tooltipY + 'px';
+}
+
+function updateTooltipPosition(event) {
+    if (currentTooltip) {
+        positionTooltip(currentTooltip, event);
+    }
+}
+
+function setupTooltip(element, message) {
+    element.addEventListener('mouseenter', (event) => {
+        showTooltip(element, message, event);
+    });
+    
+    element.addEventListener('mouseleave', () => {
+        hideTooltip();
+    });
+    
+    element.addEventListener('mousemove', (event) => {
+        updateTooltipPosition(event);
+    });
+}
+
+// Limpa tooltips ao sair da página
+window.addEventListener('beforeunload', hideTooltip);
 
 // ===== SUPABASE REALTIME CONFIGURATION =====
 

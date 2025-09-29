@@ -697,38 +697,44 @@ select option {
     cursor: pointer;
 }
 
-/* Tooltip para mensagens dos agendamentos */
-.agendamento-item[data-mensagem]:hover::after {
-    content: attr(data-mensagem);
+/* Tooltip para mensagens dos agendamentos - implementado em JavaScript */
+.custom-tooltip {
     position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 8px 12px;
     border-radius: 6px;
     font-size: 0.8em;
-    white-space: nowrap;
-    max-width: 200px;
-    white-space: normal;
+    max-width: 300px;
     word-wrap: break-word;
-    z-index: 1000;
+    z-index: 10000;
     pointer-events: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    margin-bottom: 5px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    font-family: Arial, sans-serif;
+    line-height: 1.4;
 }
 
-.agendamento-item[data-mensagem]:hover::before {
+.custom-tooltip.show {
+    opacity: 1;
+}
+
+.custom-tooltip::before {
     content: '';
     position: absolute;
-    bottom: 100%;
+    top: -5px;
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.9);
+}
+
+.custom-tooltip.arrow-top::before {
+    top: auto;
+    bottom: -5px;
+    border-bottom-color: transparent;
     border-top-color: rgba(0, 0, 0, 0.9);
-    z-index: 1001;
-    margin-bottom: -5px;
 }
 
 .agendamento-nome {
