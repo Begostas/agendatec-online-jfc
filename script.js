@@ -662,10 +662,9 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     const agendamentoDiv = document.createElement('div');
                     agendamentoDiv.className = 'agendamento-item';
                     
-                    // Adicionar tooltip com observações se existir
+                    // Adicionar tooltip com mensagem se existir
                     if (ag.mensagem && ag.mensagem.trim() !== '') {
                         agendamentoDiv.setAttribute('data-mensagem', ag.mensagem);
-                        agendamentoDiv.title = 'Clique para ver observações';
                     }
                     
                     const nomeDiv = document.createElement('div');

@@ -697,7 +697,7 @@ select option {
     cursor: pointer;
 }
 
-/* Tooltip para observações dos agendamentos */
+/* Tooltip para mensagens dos agendamentos */
 .agendamento-item[data-mensagem]:hover::after {
     content: attr(data-mensagem);
     position: absolute;
