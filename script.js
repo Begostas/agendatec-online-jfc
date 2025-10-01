@@ -269,6 +269,51 @@ function validarOrdemHorarios() {
 function setupCheckboxItems() {
     const checkboxItems = document.querySelectorAll('.checkbox-item');
     
+    // Mapeamento de dependências entre salas e lousas
+    const dependencias = {
+        'Sala de Informática': 'Lousa Informática',
+        'Anfiteatro': 'Lousa Anfiteatro',
+        'Biblioteca': 'Lousa Biblioteca',
+        'Lousa Informática': 'Sala de Informática',
+        'Lousa Anfiteatro': 'Anfiteatro',
+        'Lousa Biblioteca': 'Biblioteca'
+    };
+    
+    // Função para gerenciar estado de habilitação/desabilitação
+    function gerenciarDependencias() {
+        const espacosSelecionados = Array.from(document.querySelectorAll('.espaco-checkbox:checked')).map(cb => cb.value);
+        const lousasSelecionadas = Array.from(document.querySelectorAll('.lousa-checkbox:checked')).map(cb => cb.value);
+        
+        // Resetar todos os estados primeiro
+        document.querySelectorAll('.espaco-checkbox, .lousa-checkbox').forEach(cb => {
+            cb.disabled = false;
+        });
+        
+        // Se há um espaço selecionado, desabilitar lousas incompatíveis
+        if (espacosSelecionados.length > 0) {
+            const espacoSelecionado = espacosSelecionados[0];
+            const lousaCompativel = dependencias[espacoSelecionado];
+            
+            document.querySelectorAll('.lousa-checkbox').forEach(cb => {
+                if (cb.value !== lousaCompativel) {
+                    cb.disabled = true;
+                }
+            });
+        }
+        
+        // Se há uma lousa selecionada, desabilitar espaços incompatíveis
+        if (lousasSelecionadas.length > 0) {
+            const lousaSelecionada = lousasSelecionadas[0];
+            const espacoCompativel = dependencias[lousaSelecionada];
+            
+            document.querySelectorAll('.espaco-checkbox').forEach(cb => {
+                if (cb.value !== espacoCompativel) {
+                    cb.disabled = true;
+                }
+            });
+        }
+    }
+    
     checkboxItems.forEach(item => {
         const checkbox = item.querySelector('input[type="checkbox"]');
         const label = item.querySelector('label');
@@ -284,6 +329,11 @@ function setupCheckboxItems() {
         
         // Evento de clique na caixa inteira
         item.addEventListener('click', function(e) {
+            // Prevenir clique se estiver desabilitado
+            if (checkbox.disabled) {
+                return;
+            }
+            
             // Prevenir duplo clique se clicar diretamente no checkbox ou label
             if (e.target === checkbox || e.target === label) {
                 return;
@@ -321,11 +371,17 @@ function setupCheckboxItems() {
                     }
                 });
             }
+            
+            // Aplicar lógica de dependências
+            gerenciarDependencias();
         });
         
         // Estado inicial
         updateVisualState();
     });
+    
+    // Aplicar dependências no estado inicial
+    gerenciarDependencias();
 }
 
 // Função para popular os horários
@@ -915,7 +971,8 @@ async function enviarNotificacaoEmail(dadosAgendamento) {
         // Parâmetros do template de e-mail
         const templateParams = {
             to_email: 'eric.benaglia@edu.treslagoas.ms.gov.br',
-            from_name: 'Sistema de Agendamento - AgendaTec',
+            from_name: 'AgendaTec',
+            from_email: 'no-reply@seudominio.com',
             professor_nome: dadosAgendamento.nome,
             professor_turma: dadosAgendamento.turma,
             professor_contato: dadosAgendamento.contato,
