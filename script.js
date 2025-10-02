@@ -764,12 +764,12 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
 
         if (error) {
             console.error("Erro ao verificar conflitos:", error.message);
-            return true;
+            return "Erro ao verificar conflitos. Tente novamente.";
         }
 
         // Se não há agendamentos na data, não há conflito
         if (!agendamentos || agendamentos.length === 0) {
-            return false;
+            return null;
         }
 
         // Converter horários para minutos para comparação precisa
@@ -794,22 +794,20 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
                 const equipamentosConflito = ag.equipamentos.filter(eq => equipamentos.includes(eq));
                 
                 if (equipamentosConflito.length > 0) {
-                    alert(`Conflito de equipamento: ${equipamentosConflito.join(', ')} já está(ão) agendado(s) das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`);
-                    return true;
+                    return `Conflito de equipamento: ${equipamentosConflito.join(', ')} já está(ão) agendado(s) das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`;
                 }
 
                 // Verificar conflito de turma
                 if (ag.turma === turma) {
-                    alert(`Conflito de turma: A turma "${turma}" já tem agendamento das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`);
-                    return true;
+                    return `Conflito de turma: A turma "${turma}" já tem agendamento das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`;
                 }
             }
         }
 
-        return false;
+        return null;
     } catch (error) {
         console.error("Erro inesperado ao verificar conflitos:", error);
-        return true; // Em caso de erro, bloquear agendamento por segurança
+        return "Erro inesperado ao verificar conflitos. Tente novamente.";
     }
 }
 
