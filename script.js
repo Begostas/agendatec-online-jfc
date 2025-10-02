@@ -813,129 +813,42 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
     }
 }
 
-// Envio do formulário
+// Envio do formulário - Interceptar para exibir modal de confirmação
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const nome = form.nome.value.trim();
-    const turma = form.turma.value.trim();
-    const contato = form.contato.value.trim();
-    const equipamentos = Array.from(document.querySelectorAll('input[name="equipamentos"]:checked')).map(cb => cb.value);
-    const data = form.data.value;
-    const horaInicio = form['hora-inicio'].value;
-    const horaFim = form['hora-fim'].value;
-    const mensagem = form.mensagem.value.trim();
+    // Capturar dados do formulário
+    const dados = capturarDadosFormulario();
 
-    // Validação de equipamentos
-    if (equipamentos.length === 0) {
+    // Validações básicas antes de exibir o modal
+    if (dados.equipamentos.length === 0) {
         alert("Selecione ao menos um equipamento.");
         return;
     }
 
-    // Validação de múltiplas lousas
-    const lousasSelecionadas = equipamentos.filter(eq => eq.includes('Lousa'));
-    if (lousasSelecionadas.length > 1) {
-        alert('Não é permitido agendar mais de uma lousa simultaneamente. Por favor, selecione apenas uma lousa.');
+    if (!dados.nome.trim()) {
+        alert("Por favor, preencha o nome.");
         return;
     }
 
-    // Validação de múltiplos espaços
-    const espacosSelecionados = equipamentos.filter(eq => 
-        eq === 'Sala de Informática' || eq === 'Anfiteatro' || eq === 'Biblioteca'
-    );
-    if (espacosSelecionados.length > 1) {
-        alert('Não é permitido agendar mais de um espaço simultaneamente. Por favor, selecione apenas um espaço.');
+    if (!dados.turma.trim()) {
+        alert("Por favor, preencha a turma.");
         return;
     }
 
-    // Validação de data passada
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas a data
-    const [ano, mes, dia] = data.split('-').map(Number);
-    const dataSelecionada = new Date(ano, mes - 1, dia);
-    
-    if (dataSelecionada < hoje) {
-        alert('Não é possível agendar para datas passadas. Por favor, selecione uma data atual ou futura.');
+    if (!dados.data) {
+        alert("Por favor, selecione uma data.");
         return;
     }
 
-    // Validação de horários
-    if (!horaInicio || !horaFim) {
-        alert('Por favor, selecione os horários de início e fim.');
+    if (!dados.horaInicio || !dados.horaFim) {
+        alert("Por favor, selecione os horários de início e fim.");
         return;
     }
 
-    // Converter horários para minutos para comparação
-    const [hIni, mIni] = horaInicio.split(':').map(Number);
-    const [hFim, mFim] = horaFim.split(':').map(Number);
-    const inicioMinutos = hIni * 60 + mIni;
-    const fimMinutos = hFim * 60 + mFim;
-
-
-
-    // Validar se os horários estão dentro do período escolar
-    const periodoEscolar = (inicioMinutos >= 430 && fimMinutos <= 1020); // 7:10 às 17:00
-    
-    if (!periodoEscolar) {
-        alert('Os horários devem estar dentro do período escolar: 7h10 às 17h.');
-        return;
-    }
-
-
-
-
-
-    // Verificar se a data não é sábado ou domingo
-    const diaSemana = dataSelecionada.getDay();
-    
-    if (diaSemana === 0 || diaSemana === 6) {
-        alert('Agendamentos não são permitidos aos sábados e domingos. Por favor, selecione um dia útil.');
-        return;
-    }
-
-    const conflito = await verificarConflito(data, horaInicio, horaFim, equipamentos, turma, nome);
-    if (conflito) return;
-
-    const { error } = await supabaseClient
-        .from('agendamentos')
-        .insert([{
-            nome,
-            turma,
-            contato,
-            equipamentos,
-            data,
-            horaInicio,
-            horaFim,
-            mensagem
-        }]);
-
-    if (error) {
-        alert("Erro ao salvar: " + error.message);
-        return;
-    }
-
-    // Dados do agendamento para integração
-    const dadosAgendamento = {
-        nome,
-        turma,
-        contato,
-        equipamentos,
-        data,
-        horaInicio,
-        horaFim,
-        mensagem
-    };
-
-    // Enviar notificação por e-mail de forma assíncrona (não-bloqueante)
-    enviarNotificacaoEmail(dadosAgendamento).catch(error => {
-        console.error('Erro no envio de e-mail (não afeta o agendamento):', error);
-    });
-
-    // Google Calendar integration removed
-
-    alert("Agendamento realizado com sucesso!");
-    form.reset();
-    carregarAgendamentos();
+    // Armazenar dados temporariamente e exibir modal
+    dadosFormularioTemp = dados;
+    exibirModalConfirmacao(dados);
 });
 
 // Função para enviar notificação por e-mail
@@ -1530,3 +1443,215 @@ document.addEventListener('visibilitychange', () => {
 });
 
 console.log('🚀 Supabase Realtime configurado com sucesso!');
+
+// ===== MODAL DE CONFIRMAÇÃO =====
+
+// Elementos do modal
+const modalOverlay = document.getElementById('modal-confirmacao');
+const modalClose = document.querySelector('.modal-close');
+const btnCancelar = document.querySelector('.btn-cancelar');
+const btnConfirmar = document.querySelector('.btn-confirmar');
+
+// Variável para armazenar os dados do formulário temporariamente
+let dadosFormularioTemp = null;
+
+// Função para capturar dados do formulário
+function capturarDadosFormulario() {
+    const equipamentosSelecionados = [];
+    
+    // Capturar equipamentos selecionados
+    const checkboxes = document.querySelectorAll('input[name="equipamentos"]:checked');
+    checkboxes.forEach(checkbox => {
+        equipamentosSelecionados.push(checkbox.value);
+    });
+    
+    // Capturar dados do formulário diretamente dos elementos
+    const dados = {
+        nome: document.getElementById('nome').value || '',
+        turma: document.getElementById('turma').value || '',
+        contato: document.getElementById('contato').value || '',
+        equipamentos: equipamentosSelecionados,
+        data: document.getElementById('data').value || '',
+        horaInicio: document.getElementById('hora-inicio').value || '',
+        horaFim: document.getElementById('hora-fim').value || '',
+        mensagem: document.getElementById('mensagem').value || ''
+    };
+    
+    return dados;
+}
+
+// Função para formatar data para exibição
+function formatarDataExibicao(dataISO) {
+    if (!dataISO) return '';
+    const [ano, mes, dia] = dataISO.split('-');
+    return `${dia}/${mes}/${ano}`;
+}
+
+// Função para formatar horário para exibição
+function formatarHorarioExibicao(horario) {
+    if (!horario) return '';
+    return horario.substring(0, 5);
+}
+
+// Função para exibir o modal com os dados
+function exibirModalConfirmacao(dados) {
+    // Preencher os dados no modal
+    document.getElementById('resumo-nome').textContent = dados.nome || 'Não informado';
+    document.getElementById('resumo-turma').textContent = dados.turma || 'Não informado';
+    document.getElementById('resumo-contato').textContent = dados.contato && dados.contato.trim() !== '' ? dados.contato : '(nenhum)';
+    document.getElementById('resumo-equipamentos').textContent = dados.equipamentos.length > 0 ? dados.equipamentos.join(', ') : 'Nenhum equipamento selecionado';
+    document.getElementById('resumo-data').textContent = formatarDataExibicao(dados.data) || 'Não informado';
+    document.getElementById('resumo-horario').textContent = dados.horaInicio && dados.horaFim ? 
+        `${formatarHorarioExibicao(dados.horaInicio)} - ${formatarHorarioExibicao(dados.horaFim)}` : 'Não informado';
+    
+    // Tratar mensagem (ocultar se estiver vazia)
+    const itemMensagem = document.getElementById('resumo-mensagem-container');
+    if (dados.mensagem && dados.mensagem.trim() !== '') {
+        document.getElementById('resumo-mensagem').textContent = dados.mensagem;
+        itemMensagem.classList.remove('hidden');
+    } else {
+        itemMensagem.classList.add('hidden');
+    }
+    
+    // Exibir o modal
+    modalOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevenir scroll da página
+}
+
+// Função para fechar o modal
+function fecharModal() {
+    modalOverlay.classList.remove('show');
+    document.body.style.overflow = ''; // Restaurar scroll da página
+    dadosFormularioTemp = null;
+}
+
+// Função para processar o envio do formulário (código original)
+async function processarEnvioFormulario(dados) {
+    try {
+        // Mostrar loading no botão confirmar
+        btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        btnConfirmar.disabled = true;
+        
+        // Validações (código original do form.addEventListener)
+        if (dados.equipamentos.length === 0) {
+            throw new Error('Por favor, selecione pelo menos um equipamento.');
+        }
+
+        const lousasSelecionadas = dados.equipamentos.filter(eq => eq.includes('lousa'));
+        if (lousasSelecionadas.length > 1) {
+            throw new Error('Você pode selecionar apenas uma lousa por agendamento.');
+        }
+
+        const espacosSelecionados = dados.equipamentos.filter(eq => ['Sala de Informática', 'Anfiteatro', 'Biblioteca'].includes(eq));
+        if (espacosSelecionados.length > 1) {
+            throw new Error('Você pode selecionar apenas um espaço por agendamento.');
+        }
+
+        const dataAgendamento = new Date(dados.data + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        if (dataAgendamento < hoje) {
+            throw new Error('Não é possível agendar para datas passadas.');
+        }
+
+        const diaSemana = dataAgendamento.getDay();
+        if (diaSemana === 0 || diaSemana === 6) {
+            throw new Error('Agendamentos não são permitidos aos finais de semana.');
+        }
+
+        const horaInicioMinutos = horarioParaMinutos(dados.horaInicio);
+        const horaFimMinutos = horarioParaMinutos(dados.horaFim);
+
+        if (horaInicioMinutos >= horaFimMinutos) {
+            throw new Error('O horário de início deve ser anterior ao horário de fim.');
+        }
+
+        if (horaInicioMinutos < 420 || horaFimMinutos > 1080) {
+            throw new Error('Os agendamentos devem estar entre 07:00 e 18:00.');
+        }
+
+        // Verificar conflitos
+        const conflito = await verificarConflito(dados.data, dados.horaInicio, dados.horaFim, dados.equipamentos, dados.turma, dados.nome);
+        if (conflito) {
+            throw new Error(conflito);
+        }
+
+        // Inserir no Supabase
+        const { data: novoAgendamento, error } = await supabase
+            .from('agendamentos')
+            .insert([{
+                nome: dados.nome,
+                turma: dados.turma,
+                contato: dados.contato,
+                equipamentos: dados.equipamentos,
+                data: dados.data,
+                horaInicio: dados.horaInicio,
+                horaFim: dados.horaFim,
+                mensagem: dados.mensagem || null
+            }])
+            .select();
+
+        if (error) {
+            console.error('Erro ao inserir agendamento:', error);
+            throw new Error('Erro ao salvar agendamento. Tente novamente.');
+        }
+
+        // Enviar notificação por email
+        await enviarNotificacaoEmail({
+            nome: dados.nome,
+            turma: dados.turma,
+            contato: dados.contato,
+            equipamentos: dados.equipamentos,
+            data: dados.data,
+            horaInicio: dados.horaInicio,
+            horaFim: dados.horaFim,
+            mensagem: dados.mensagem
+        });
+
+        // Fechar modal
+        fecharModal();
+
+        // Mostrar sucesso
+        alert('Agendamento realizado com sucesso!');
+
+        // Limpar formulário
+        form.reset();
+        setupCheckboxItems();
+
+        // Recarregar agendamentos
+        await carregarAgendamentos();
+
+    } catch (error) {
+        console.error('Erro no envio:', error);
+        alert(error.message);
+    } finally {
+        // Restaurar botão confirmar
+        btnConfirmar.innerHTML = '<i class="fas fa-check"></i> Confirmar Agendamento';
+        btnConfirmar.disabled = false;
+    }
+}
+
+// Event listeners do modal
+modalClose.addEventListener('click', fecharModal);
+btnCancelar.addEventListener('click', fecharModal);
+
+btnConfirmar.addEventListener('click', async () => {
+    if (dadosFormularioTemp) {
+        await processarEnvioFormulario(dadosFormularioTemp);
+    }
+});
+
+// Fechar modal ao clicar no overlay
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) {
+        fecharModal();
+    }
+});
+
+// Fechar modal com ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('show')) {
+        fecharModal();
+    }
+});

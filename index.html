@@ -193,6 +193,68 @@
         </footer>
     </div>
 
+    <!-- Modal de Confirmação -->
+    <div id="modal-confirmacao" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Confirmar Agendamento</h3>
+                <button type="button" class="modal-close" id="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-subtitle">Revise as informações do seu agendamento:</p>
+                
+                <div class="resumo-container">
+                    <div class="resumo-item">
+                        <span class="resumo-label">Nome:</span>
+                        <span class="resumo-valor" id="resumo-nome"></span>
+                    </div>
+                    
+                    <div class="resumo-item">
+                        <span class="resumo-label">Turma:</span>
+                        <span class="resumo-valor" id="resumo-turma"></span>
+                    </div>
+                    
+                    <div class="resumo-item">
+                        <span class="resumo-label">Contato:</span>
+                        <span class="resumo-valor" id="resumo-contato"></span>
+                    </div>
+                    
+                    <div class="resumo-item">
+                        <span class="resumo-label">Equipamentos:</span>
+                        <span class="resumo-valor" id="resumo-equipamentos"></span>
+                    </div>
+                    
+                    <div class="resumo-item">
+                        <span class="resumo-label">Data:</span>
+                        <span class="resumo-valor" id="resumo-data"></span>
+                    </div>
+                    
+                    <div class="resumo-item">
+                        <span class="resumo-label">Horário:</span>
+                        <span class="resumo-valor" id="resumo-horario"></span>
+                    </div>
+                    
+                    <div class="resumo-item" id="resumo-mensagem-container">
+                        <span class="resumo-label">Mensagem:</span>
+                        <span class="resumo-valor" id="resumo-mensagem"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-cancelar" id="btn-cancelar-modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn-confirmar" id="btn-confirmar-modal">
+                    <i class="fas fa-check"></i> Confirmar Agendamento
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="supabase-config.js"></script>
     <script src="emailjs-config.js"></script>
     <!-- Google Calendar script removed -->
