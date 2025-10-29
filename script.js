@@ -1269,10 +1269,18 @@ async function atualizarTabelaRealtime(payload) {
     try {
         const { eventType, new: newRecord, old: oldRecord } = payload;
         
-        console.log(`Evento: ${eventType}`, { newRecord, oldRecord });
+        console.log(`Evento Realtime: ${eventType}`, { newRecord, oldRecord });
         
-        // Recarrega os agendamentos para manter consistência
-        await carregarAgendamentos();
+        // Força recarregar os agendamentos diretamente do Supabase
+        const { data: novosAgendamentos, error } = await supabase
+            .from('agendamentos')
+            .select('*')
+            .order('data', { ascending: true });
+            
+        if (error) throw error;
+        
+        // Atualiza a variável global de agendamentos
+        agendamentos = novosAgendamentos;
         
         // Atualiza a tabela semanal
         const semanaAtual = document.getElementById('week-selector').value || 0;
