@@ -585,17 +585,41 @@ async function carregarAgendamentos() {
 
     if (error) {
         console.error("Erro ao carregar agendamentos:", error.message);
-        return;
+        return [];
     }
+
+    // Armazenar os agendamentos em uma variável global para acesso fácil
+    window.agendamentos = data;
+    console.log(`Carregados ${data.length} agendamentos futuros`);
 
     // Gerar opções de semanas
     gerarOpcoesSemanasF();
     
     // Carregar semana atual (índice 0)
     await criarTabelaSemanal(data, 0);
+    
+    return data;
 }
 
 async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
+    // Se não recebeu agendamentos, usa os globais se disponíveis
+    if (!agendamentos && window.agendamentos) {
+        agendamentos = window.agendamentos;
+        console.log('Usando agendamentos da variável global');
+    }
+    
+    if (!agendamentos || agendamentos.length === 0) {
+        console.log('Nenhum agendamento disponível para exibir');
+        // Limpar tabela e mostrar mensagem
+        const tabelaBody = document.getElementById('tabela-body');
+        if (tabelaBody) {
+            tabelaBody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum agendamento futuro encontrado</td></tr>';
+        }
+        return;
+    }
+    
+    console.log(`Exibindo ${agendamentos.length} agendamentos futuros`);
+    
     // Usar os horários atualizados - removendo horários :30 e alterando 07:00->07:10, removendo 13:10
     const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
 
