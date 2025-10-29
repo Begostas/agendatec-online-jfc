@@ -43,7 +43,7 @@ function iniciarSincronizacaoRealtime() {
                 table: 'agendamentos'
             },
             async (payload) => {
-                console.log('Alteração detectada na tabela agendamentos:', payload);
+                console.log('Alteração detectada na tabela agendamentos:', payload.new || payload.old);
                 
                 // Atualiza a tabela automaticamente
                 await atualizarDadosRealtime(payload);
@@ -69,14 +69,26 @@ async function atualizarDadosRealtime(payload) {
         
         // Verifica se a função de carregamento existe
         if (typeof carregarAgendamentos === 'function') {
-            // Recarrega os agendamentos
+            // Recarrega os agendamentos diretamente do Supabase
             await carregarAgendamentos();
             console.log('Tabela de agendamentos atualizada via Realtime');
+            
+            // Atualiza a visualização da tabela semanal se a função existir
+            if (typeof criarTabelaSemanal === 'function') {
+                criarTabelaSemanal();
+                console.log('Tabela semanal atualizada via Realtime');
+            }
         } else {
             console.log('Função carregarAgendamentos não encontrada. Atualizando via evento de documento.');
             // Dispara um evento personalizado para notificar outras partes da aplicação
             const evento = new CustomEvent('agendamentos-atualizados', { detail: payload });
             document.dispatchEvent(evento);
+            
+            // Notifica o usuário sobre a atualização
+            if (typeof mostrarNotificacao === 'function') {
+                const tipoEvento = eventType === 'INSERT' ? 'adicionado' : eventType === 'UPDATE' ? 'atualizado' : 'removido';
+                mostrarNotificacao(`Agendamento ${tipoEvento}`, 'info');
+            }
         }
     } catch (error) {
         console.error('Erro ao atualizar dados em tempo real:', error);

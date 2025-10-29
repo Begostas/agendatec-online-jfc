@@ -103,4 +103,7 @@ COMMENT ON COLUMN agendamentos.data IS 'Data do agendamento';
 COMMENT ON COLUMN agendamentos."horaInicio" IS 'Hora de início do agendamento';
 COMMENT ON COLUMN agendamentos."horaFim" IS 'Hora de término do agendamento';
 COMMENT ON COLUMN agendamentos.timestamp IS 'Timestamp de quando o agendamento foi criado';
-COMMENT ON COLUMN historico_agendamentos.moved_to_history_at IS 'Timestamp de quando o agendamento foi movido para o histórico';}]}}}
+COMMENT ON COLUMN historico_agendamentos.moved_to_history_at IS 'Timestamp de quando o agendamento foi movido para o histórico';
+
+-- Habilitar Realtime para a tabela de agendamentos
+ALTER PUBLICATION supabase_realtime ADD TABLE agendamentos;
