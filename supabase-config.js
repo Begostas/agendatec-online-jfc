@@ -23,5 +23,91 @@ async function removerAgendamentosAntigos() {
     }
 }
 
+// Configuração do Supabase Realtime para sincronização em tempo real
+let realtimeChannel = null;
+
+function iniciarSincronizacaoRealtime() {
+    // Remove canal anterior se existir
+    if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+    }
+
+    // Cria novo canal para monitorar a tabela agendamentos
+    realtimeChannel = supabase
+        .channel('agendamentos-changes')
+        .on(
+            'postgres_changes',
+            {
+                event: '*', // Monitora INSERT, UPDATE, DELETE
+                schema: 'public',
+                table: 'agendamentos'
+            },
+            async (payload) => {
+                console.log('Alteração detectada na tabela agendamentos:', payload);
+                
+                // Atualiza a tabela automaticamente
+                await atualizarDadosRealtime(payload);
+            }
+        )
+        .subscribe((status) => {
+            console.log('Status do Realtime:', status);
+            if (status === 'SUBSCRIBED') {
+                console.log('✅ Sincronização em tempo real ativada com sucesso!');
+            } else if (status === 'CHANNEL_ERROR') {
+                console.error('❌ Erro na conexão Realtime');
+                // Tenta reconectar após 5 segundos
+                setTimeout(iniciarSincronizacaoRealtime, 5000);
+            }
+        });
+}
+
+// Função para atualizar os dados quando ocorrer alterações
+async function atualizarDadosRealtime(payload) {
+    try {
+        const { eventType } = payload;
+        console.log(`Evento Realtime: ${eventType}`);
+        
+        // Verifica se a função de carregamento existe
+        if (typeof carregarAgendamentos === 'function') {
+            // Recarrega os agendamentos
+            await carregarAgendamentos();
+            console.log('Tabela de agendamentos atualizada via Realtime');
+        } else {
+            console.log('Função carregarAgendamentos não encontrada. Atualizando via evento de documento.');
+            // Dispara um evento personalizado para notificar outras partes da aplicação
+            const evento = new CustomEvent('agendamentos-atualizados', { detail: payload });
+            document.dispatchEvent(evento);
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar dados em tempo real:', error);
+    }
+}
+
+// Função para limpar conexões Realtime ao sair da página
+function limparRealtimeConnections() {
+    if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+        console.log('🔌 Conexão Realtime encerrada');
+    }
+}
+
+// Adiciona listeners para gerenciar o ciclo de vida da conexão Realtime
+window.addEventListener('beforeunload', limparRealtimeConnections);
+window.addEventListener('unload', limparRealtimeConnections);
+
+// Reconecta quando a página volta a ficar visível
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && realtimeChannel) {
+        // Verifica se o canal está desconectado
+        if (realtimeChannel.state !== 'joined') {
+            console.log('🔄 Reconectando Realtime...');
+            iniciarSincronizacaoRealtime();
+        }
+    }
+});
+
 // Executa ao carregar
 removerAgendamentosAntigos();
+
+// Inicia a sincronização em tempo real após um breve delay
+setTimeout(iniciarSincronizacaoRealtime, 1000);
