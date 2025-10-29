@@ -61,23 +61,51 @@ function iniciarSincronizacaoRealtime() {
         });
 }
 
+// Variável para controlar se a tabela já foi carregada inicialmente
+let tabelaInicialCarregada = false;
+
 // Função para atualizar os dados quando ocorrer alterações
 async function atualizarDadosRealtime(payload) {
     try {
+        // Se a tabela ainda não foi carregada inicialmente, não faz nada
+        if (!tabelaInicialCarregada) {
+            console.log('Ignorando evento Realtime até que a tabela inicial seja carregada');
+            return;
+        }
+
         const { eventType } = payload;
         console.log(`Evento Realtime: ${eventType}`);
         
         // Verifica se a função de carregamento existe
         if (typeof carregarAgendamentos === 'function') {
-            // Recarrega os agendamentos diretamente do Supabase
-            await carregarAgendamentos();
-            console.log('Tabela de agendamentos atualizada via Realtime');
+            // Busca apenas os dados atualizados do Supabase sem recriar toda a tabela
+            const hoje = new Date();
+            const hojeISO = hoje.toISOString().split('T')[0];
+            
+            const { data, error } = await supabaseClient
+                .from('agendamentos')
+                .select('*')
+                .gte('"data"', hojeISO)
+                .order('"data"', { ascending: true })
+                .order('"horaInicio"', { ascending: true });
+                
+            if (error) {
+                console.error("Erro ao atualizar agendamentos:", error.message);
+                return;
+            }
+            
+            // Atualiza a variável global de agendamentos se existir
+            if (typeof window.agendamentos !== 'undefined') {
+                window.agendamentos = data;
+            }
             
             // Atualiza a visualização da tabela semanal se a função existir
             if (typeof criarTabelaSemanal === 'function') {
-                criarTabelaSemanal();
+                criarTabelaSemanal(data);
                 console.log('Tabela semanal atualizada via Realtime');
             }
+            
+            console.log('Tabela de agendamentos atualizada via Realtime');
         } else {
             console.log('Função carregarAgendamentos não encontrada. Atualizando via evento de documento.');
             // Dispara um evento personalizado para notificar outras partes da aplicação
@@ -121,5 +149,24 @@ document.addEventListener('visibilitychange', () => {
 // Executa ao carregar
 removerAgendamentosAntigos();
 
-// Inicia a sincronização em tempo real após um breve delay
-setTimeout(iniciarSincronizacaoRealtime, 1000);
+// Garante que a tabela seja carregada primeiro, se a função existir
+if (typeof carregarAgendamentos === 'function') {
+    // Carrega os agendamentos imediatamente
+    carregarAgendamentos().then(() => {
+        console.log('✅ Tabela de agendamentos carregada com sucesso!');
+        // Marca que a tabela inicial foi carregada
+        tabelaInicialCarregada = true;
+        // Só inicia o Realtime após carregar a tabela
+        setTimeout(iniciarSincronizacaoRealtime, 500);
+    }).catch(err => {
+        console.error('❌ Erro ao carregar agendamentos:', err);
+        // Mesmo com erro, marca como carregada para não bloquear o Realtime
+        tabelaInicialCarregada = true;
+        // Mesmo com erro, tenta iniciar o Realtime
+        setTimeout(iniciarSincronizacaoRealtime, 1000);
+    });
+} else {
+    // Se a função não existir, marca como carregada e inicia o Realtime
+    tabelaInicialCarregada = true;
+    setTimeout(iniciarSincronizacaoRealtime, 1000);
+}
