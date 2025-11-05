@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Fuso Horário - America/Cuiaba</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .test-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        .log {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Fuso Horário - America/Cuiaba (UTC−4)</h1>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <button onclick="executarTodosTestes()">Executar Todos os Testes</button>
+            <button onclick="executarTesteHorariosEspecificos()">Testar Horários Críticos</button>
+            <button onclick="limparResultados()">Limpar Resultados</button>
+        </div>
+
+        <div id="resultados"></div>
+        
+        <div class="summary" id="summary" style="display: none;">
+            <h3>Resumo dos Testes</h3>
+            <div id="summary-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para converter data para o fuso horário America/Cuiaba (UTC-4)
+        function toLocalDate(date) {
+            if (!date) return new Date();
+            const data = new Date(date);
+            const offset = -4; // UTC-4 para America/Cuiaba
+            const utc = data.getTime() + (data.getTimezoneOffset() * 60000);
+            return new Date(utc + (3600000 * offset));
+        }
+
+        // Função para formatar data no formato ISO (YYYY-MM-DD)
+        function formatDateISO(date) {
+            const dataLocal = toLocalDate(date);
+            const ano = dataLocal.getFullYear();
+            const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
+            const dia = String(dataLocal.getDate()).padStart(2, '0');
+            return `${ano}-${mes}-${dia}`;
+        }
+
+        // Função para formatar data e hora para exibição
+        function formatDateTimeDisplay(date) {
+            const dataLocal = toLocalDate(date);
+            const dia = String(dataLocal.getDate()).padStart(2, '0');
+            const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
+            const ano = dataLocal.getFullYear();
+            const horas = String(dataLocal.getHours()).padStart(2, '0');
+            const minutos = String(dataLocal.getMinutes()).padStart(2, '0');
+            return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+        }
+
+        // Função para obter o início da semana (segunda-feira)
+        function getInicioSemana(data) {
+            const d = toLocalDate(data);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            const novaData = new Date(d.setDate(diff));
+            return toLocalDate(novaData);
+        }
+
+        // Função para verificar se é sábado (dia de atualização)
+        function verificarAtualizacaoSemanal(data) {
+            const dataLocal = toLocalDate(data);
+            return dataLocal.getDay() === 6; // 6 = Sábado
+        }
+
+        // Função para calcular dias da semana
+        function calcularDiasSemana(dataBase) {
+            const diasSemana = [];
+            for (let i = 0; i < 5; i++) {
+                const data = toLocalDate(dataBase);
+                data.setDate(dataBase.getDate() + i);
+                diasSemana.push(formatDateISO(data));
+            }
+            return diasSemana;
+        }
+
+        // Função para simular data/hora específica
+        function criarDataSimulada(ano, mes, dia, hora, minuto) {
+            // Criar data no fuso local e depois converter para UTC
+            const dataLocal = new Date(ano, mes - 1, dia, hora, minuto);
+            const offset = 4; // UTC+4 (inverso do UTC-4)
+            const utc = dataLocal.getTime() - (3600000 * offset);
+            return new Date(utc);
+        }
+
+        // Teste 1: Terça-feira às 21h46
+        function testeTerca21h46() {
+            console.log('=== TESTE 1: Terça-feira às 21h46 ===');
+            const dataSimulada = criarDataSimulada(2024, 1, 9, 21, 46); // Terça, 9 de janeiro
+            const dataLocal = toLocalDate(dataSimulada);
+            
+            console.log('Data simulada (UTC):', dataSimulada.toISOString());
+            console.log('Data local (America/Cuiaba):', formatDateTimeDisplay(dataSimulada));
+            console.log('Dia da semana:', dataLocal.getDay()); // 2 = Terça
+            
+            const inicioSemana = getInicioSemana(dataSimulada);
+            console.log('Início da semana:', formatDateISO(inicioSemana));
+            
+            const diasSemana = calcularDiasSemana(inicioSemana);
+            console.log('Dias da semana:', diasSemana);
+            
+            const deveAtualizar = verificarAtualizacaoSemanal(dataSimulada);
+            console.log('Deve atualizar semana?', deveAtualizar);
+            
+            return {
+                dataSimulada: formatDateTimeDisplay(dataSimulada),
+                diaSemana: dataLocal.getDay(),
+                inicioSemana: formatDateISO(inicioSemana),
+                diasSemana: diasSemana,
+                deveAtualizar: deveAtualizar,
+                esperado: {
+                    diaSemana: 2, // Terça
+                    deveAtualizar: false,
+                    primeiraData: '2024-01-08' // Segunda anterior
+                }
+            };
+        }
+
+        // Teste 2: Sexta-feira às 23h59
+        function testeSexta23h59() {
+            console.log('=== TESTE 2: Sexta-feira às 23h59 ===');
+            const dataSimulada = criarDataSimulada(2024, 1, 12, 23, 59); // Sexta, 12 de janeiro
+            const dataLocal = toLocalDate(dataSimulada);
+            
+            console.log('Data simulada (UTC):', dataSimulada.toISOString());
+            console.log('Data local (America/Cuiaba):', formatDateTimeDisplay(dataSimulada));
+            console.log('Dia da semana:', dataLocal.getDay()); // 5 = Sexta
+            
+            const inicioSemana = getInicioSemana(dataSimulada);
+            console.log('Início da semana:', formatDateISO(inicioSemana));
+            
+            const deveAtualizar = verificarAtualizacaoSemanal(dataSimulada);
+            console.log('Deve atualizar semana?', deveAtualizar);
+            
+            return {
+                dataSimulada: formatDateTimeDisplay(dataSimulada),
+                diaSemana: dataLocal.getDay(),
+                inicioSemana: formatDateISO(inicioSemana),
+                deveAtualizar: deveAtualizar,
+                esperado: {
+                    diaSemana: 5, // Sexta
+                    deveAtualizar: false
+                }
+            };
+        }
+
+        // Teste 3: Sábado às 00h00
+        function testeSabado00h00() {
+            console.log('=== TESTE 3: Sábado às 00h00 ===');
+            const dataSimulada = criarDataSimulada(2024, 1, 13, 0, 0); // Sábado, 13 de janeiro
+            const dataLocal = toLocalDate(dataSimulada);
+            
+            console.log('Data simulada (UTC):', dataSimulada.toISOString());
+            console.log('Data local (America/Cuiaba):', formatDateTimeDisplay(dataSimulada));
+            console.log('Dia da semana:', dataLocal.getDay()); // 6 = Sábado
+            
+            const inicioSemana = getInicioSemana(dataSimulada);
+            console.log('Início da semana:', formatDateISO(inicioSemana));
+            
+            const deveAtualizar = verificarAtualizacaoSemanal(dataSimulada);
+            console.log('Deve atualizar semana?', deveAtualizar);
+            
+            return {
+                dataSimulada: formatDateTimeDisplay(dataSimulada),
+                diaSemana: dataLocal.getDay(),
+                inicioSemana: formatDateISO(inicioSemana),
+                deveAtualizar: deveAtualizar,
+                esperado: {
+                    diaSemana: 6, // Sábado
+                    deveAtualizar: true,
+                    novaSemana: '2024-01-15' // Próxima segunda
+                }
+            };
+        }
+
+        // Função para validar resultado
+        function validarResultado(teste, resultado) {
+            let sucesso = true;
+            let mensagens = [];
+            
+            if (resultado.diaSemana !== resultado.esperado.diaSemana) {
+                sucesso = false;
+                mensagens.push(`Dia da semana incorreto: esperado ${resultado.esperado.diaSemana}, obtido ${resultado.diaSemana}`);
+            }
+            
+            if (resultado.deveAtualizar !== resultado.esperado.deveAtualizar) {
+                sucesso = false;
+                mensagens.push(`Atualização incorreta: esperado ${resultado.esperado.deveAtualizar}, obtido ${resultado.deveAtualizar}`);
+            }
+            
+            if (resultado.esperado.primeiraData && resultado.inicioSemana !== resultado.esperado.primeiraData) {
+                sucesso = false;
+                mensagens.push(`Início da semana incorreto: esperado ${resultado.esperado.primeiraData}, obtido ${resultado.inicioSemana}`);
+            }
+            
+            return {
+                sucesso: sucesso,
+                mensagens: mensagens
+            };
+        }
+
+        // Função para exibir resultado
+        function exibirResultado(teste, resultado, validacao) {
+            const resultadosDiv = document.getElementById('resultados');
+            const div = document.createElement('div');
+            div.className = 'test-section';
+            
+            let statusClass = validacao.sucesso ? 'success' : 'error';
+            let statusIcon = validacao.sucesso ? '✅' : '❌';
+            
+            div.innerHTML = `
+                <div class="test-title">${statusIcon} ${teste}</div>
+                <div class="test-result ${statusClass}">
+                    <strong>Data/Horário:</strong> ${resultado.dataSimulada}<br>
+                    <strong>Dia da Semana:</strong> ${resultado.diaSemana}<br>
+                    <strong>Início da Semana:</strong> ${resultado.inicioSemana}<br>
+                    <strong>Deve Atualizar:</strong> ${resultado.deveAtualizar}<br>
+                    ${validacao.mensagens.length > 0 ? '<strong>Erros:</strong><br>' + validacao.mensagens.map(msg => '• ' + msg).join('<br>') : ''}
+                </div>
+                <div class="log">${resultado.log || 'Sem logs adicionais'}</div>
+            `;
+            
+            resultadosDiv.appendChild(div);
+        }
+
+        // Função principal para executar testes específicos
+        function executarTesteHorariosEspecificos() {
+            limparResultados();
+            
+            console.log('🧪 Iniciando testes de fuso horário...');
+            
+            // Teste 1: Terça às 21h46
+            console.log('\n📅 Testando Terça-feira às 21h46...');
+            const resultado1 = testeTerca21h46();
+            const validacao1 = validarResultado('Terça-feira às 21h46', resultado1);
+            exibirResultado('Terça-feira às 21h46', resultado1, validacao1);
+            
+            // Teste 2: Sexta às 23h59
+            console.log('\n📅 Testando Sexta-feira às 23h59...');
+            const resultado2 = testeSexta23h59();
+            const validacao2 = validarResultado('Sexta-feira às 23h59', resultado2);
+            exibirResultado('Sexta-feira às 23h59', resultado2, validacao2);
+            
+            // Teste 3: Sábado às 00h00
+            console.log('\n📅 Testando Sábado às 00h00...');
+            const resultado3 = testeSabado00h00();
+            const validacao3 = validarResultado('Sábado às 00h00', resultado3);
+            exibirResultado('Sábado às 00h00', resultado3, validacao3);
+            
+            // Resumo
+            mostrarResumo([validacao1, validacao2, validacao3]);
+            
+            console.log('\n✅ Testes concluídos!');
+        }
+
+        // Função para executar todos os testes
+        function executarTodosTestes() {
+            executarTesteHorariosEspecificos();
+        }
+
+        // Função para limpar resultados
+        function limparResultados() {
+            document.getElementById('resultados').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+        }
+
+        // Função para mostrar resumo
+        function mostrarResumo(validacoes) {
+            const total = validacoes.length;
+            const sucessos = validacoes.filter(v => v.sucesso).length;
+            const falhas = total - sucessos;
+            
+            const summaryDiv = document.getElementById('summary');
+            const contentDiv = document.getElementById('summary-content');
+            
+            contentDiv.innerHTML = `
+                <p><strong>Total de Testes:</strong> ${total}</p>
+                <p><strong>Sucessos:</strong> <span style="color: green;">${sucessos}</span></p>
+                <p><strong>Falhas:</strong> <span style="color: red;">${falhas}</span></p>
+                <p><strong>Status:</strong> ${falhas === 0 ? '<span style="color: green;">✅ Todos os testes passaram!</span>' : '<span style="color: red;">❌ Alguns testes falharam!</span>'}</p>
+            `;
+            
+            summaryDiv.style.display = 'block';
+        }
+
+        // Executar testes ao carregar a página
+        window.onload = function() {
+            console.log('🧪 Teste de Fuso Horário - America/Cuiaba (UTC−4)');
+            console.log('📍 Este teste simula os cenários críticos de horário');
+        };
+    </script>
+</body>
+</html>

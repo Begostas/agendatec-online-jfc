@@ -3,6 +3,15 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+// Função para converter data para o fuso horário America/Cuiaba (UTC-4)
+function toLocalDate(date) {
+    if (!date) return new Date();
+    const data = new Date(date);
+    const offset = -4; // UTC-4 para America/Cuiaba
+    const utc = data.getTime() + (data.getTimezoneOffset() * 60000);
+    return new Date(utc + (3600000 * offset));
+}
+
 // Configuração do Supabase
 const supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
@@ -15,14 +24,17 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Função para limpar agendamentos antigos (mais de 15 dias)
 async function limparAgendamentosAntigos() {
-    const dataLimite = new Date();
-    dataLimite.setDate(dataLimite.getDate() - 15);
+    const hoje = toLocalDate(new Date());
+    const dataLimite = new Date(hoje);
+    dataLimite.setDate(hoje.getDate() - 15);
+    
+    const dataLimiteISO = dataLimite.toISOString().split('T')[0];
     
     try {
         const { error } = await supabase
             .from('agendamentos')
             .delete()
-            .lt('data', dataLimite.toISOString().split('T')[0]);
+            .lt('data', dataLimiteISO);
         
         if (error) {
             console.error('Erro ao limpar agendamentos antigos:', error);
@@ -79,7 +91,7 @@ export default async function handler(req, res) {
       const novoAgendamento = req.body;
       
       // Adicionar timestamp
-      novoAgendamento.timestamp = new Date().toISOString();
+      novoAgendamento.timestamp = toLocalDate(new Date()).toISOString();
       
       // Inserir no Supabase
       const { data, error } = await supabase

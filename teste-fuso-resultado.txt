@@ -1,0 +1,11 @@
+
+=== TESTE DE FUSO HORÁRIO ===
+Data: 2025-11-05T14:00:27.270Z
+Fuso: America/Cuiaba (UTC−4)
+
+Terça 21h46 local: ✅
+Sexta 23h59 local: ✅
+Sábado 00h00 local: ❌
+
+Resultado: ALGUNS FALHARAM
+============================

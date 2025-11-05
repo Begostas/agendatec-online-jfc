@@ -183,6 +183,15 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        // Função para converter data para o fuso horário America/Cuiaba (UTC-4)
+        function toLocalDate(date) {
+            if (!date) return new Date();
+            const data = new Date(date);
+            const offset = -4; // UTC-4 para America/Cuiaba
+            const utc = data.getTime() + (data.getTimezoneOffset() * 60000);
+            return new Date(utc + (3600000 * offset));
+        }
+
         // Elementos DOM
         const weekSelector = document.getElementById('week-selector');
         const tabelaBody = document.querySelector('#tabela-semanal-body');
@@ -206,15 +215,16 @@
 
         // Função para obter o início da semana
         function getInicioSemana(data) {
-            const d = new Date(data);
+            const d = toLocalDate(data);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
+            const novaData = new Date(d.setDate(diff));
+            return toLocalDate(novaData);
         }
 
         // Função para popular o seletor de semanas
         function popularSeletorSemanas() {
-            const hoje = new Date();
+            const hoje = toLocalDate(new Date());
             weekSelector.innerHTML = '';
 
             for (let i = 0; i < 12; i++) {
@@ -226,12 +236,21 @@
                 fimSemana.setDate(inicioSemanaFormatado.getDate() + 4);
 
                 const option = document.createElement('option');
-                option.value = inicioSemanaFormatado.toISOString().split('T')[0];
+                option.value = formatDateISO(inicioSemanaFormatado);
                 option.textContent = `${inicioSemanaFormatado.toLocaleDateString('pt-BR')} - ${fimSemana.toLocaleDateString('pt-BR')}`;
                 
                 if (i === 0) option.selected = true;
                 weekSelector.appendChild(option);
             }
+        }
+
+        // Função para formatar data no formato ISO (YYYY-MM-DD)
+        function formatDateISO(date) {
+            const dataLocal = toLocalDate(date);
+            const ano = dataLocal.getFullYear();
+            const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
+            const dia = String(dataLocal.getDate()).padStart(2, '0');
+            return `${ano}-${mes}-${dia}`;
         }
 
         // Função para carregar agendamentos da semana
@@ -243,11 +262,14 @@
                 const fimSemana = new Date(inicioSemana);
                 fimSemana.setDate(inicioSemana.getDate() + 4);
 
+                const inicioSemanaISO = formatDateISO(inicioSemana);
+                const fimSemanaISO = formatDateISO(fimSemana);
+
                 const { data: agendamentos, error } = await supabase
                     .from('agendamentos')
                     .select('*')
-                    .gte('data', inicioSemana.toISOString().split('T')[0])
-                    .lte('data', fimSemana.toISOString().split('T')[0])
+                    .gte('data', inicioSemanaISO)
+                    .lte('data', fimSemanaISO)
                     .order('data', { ascending: true })
                     .order('horaInicio', { ascending: true });
 
@@ -269,7 +291,7 @@
             // Atualizar cabeçalhos com as datas
             const cabecalhos = document.querySelectorAll('.tabela-semanal .dia-col');
             for (let i = 0; i < 5; i++) {
-                const data = new Date(inicioSemana);
+                const data = toLocalDate(inicioSemana);
                 data.setDate(inicioSemana.getDate() + i);
                 const diaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'][i];
                 cabecalhos[i].textContent = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})`;
@@ -288,9 +310,9 @@
                 // Células para cada dia da semana
                 for (let dia = 0; dia < 5; dia++) {
                     const celula = document.createElement('td');
-                    const dataAtual = new Date(inicioSemana);
+                    const dataAtual = toLocalDate(inicioSemana);
                     dataAtual.setDate(inicioSemana.getDate() + dia);
-                    const dataString = dataAtual.toISOString().split('T')[0];
+                    const dataString = formatDateISO(dataAtual);
 
                     // Filtrar agendamentos para este dia e horário
                     const agendamentosDoDia = agendamentos.filter(ag => {

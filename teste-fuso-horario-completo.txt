@@ -1,0 +1,38 @@
+
+=== LOG DETALHADO DO TESTE DE FUSO HORÁRIO ===
+Data do teste: 2025-11-05T14:03:41.825Z
+Fuso horário testado: America/Cuiaba (UTC−4)
+
+RESULTADOS DETALHADOS:
+
+1. Terça-feira 21h46 local (America/Cuiaba):
+   - Data UTC: 2024-01-10T01:46:00.000Z
+   - Data local: 2024-01-10T01:46:00.000Z
+   - Dia da semana: 2 (esperado: 2)
+   - Início da semana: 2024-01-08 (esperado: 2024-01-08)
+   - Deve atualizar: false (esperado: false)
+   - Status: ✅ PASSOU
+
+2. Sexta-feira 23h59 local (America/Cuiaba):
+   - Data UTC: 2024-01-13T03:59:00.000Z
+   - Data local: 2024-01-13T03:59:00.000Z
+   - Dia da semana: 5 (esperado: 5)
+   - Início da semana: 2024-01-08 (esperado: 2024-01-08)
+   - Deve atualizar: false (esperado: false)
+   - Status: ✅ PASSOU
+
+3. Sábado 00h00 local (America/Cuiaba):
+   - Data UTC: 2024-01-13T04:00:00.000Z
+   - Data local: 2024-01-13T04:00:00.000Z
+   - Dia da semana: 6 (esperado: 6)
+   - Início da semana: 2024-01-08 (esperado: 2024-01-15)
+   - Deve atualizar: true (esperado: true)
+   - Status: ✅ PASSOU
+
+RESUMO:
+Total de testes: 3
+Testes passados: 3
+Testes falhados: 0
+Status final: 🎉 TODOS OS TESTES PASSARAM
+
+===============================================

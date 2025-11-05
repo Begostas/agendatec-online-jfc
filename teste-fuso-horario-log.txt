@@ -1,0 +1,26 @@
+
+=== LOG DE TESTES DE FUSO HORÁRIO ===
+Data do teste: 2025-11-05T13:58:33.336Z
+Fuso horário: America/Cuiaba (UTC−4)
+
+Resultados:
+
+✅ Terça-feira 21h46
+Esperado: Dia=2, Atualizar=false, Início=2024-01-08
+Obtido: Dia=2, Atualizar=false, Início=2024-01-08
+
+✅ Sexta-feira 23h59
+Esperado: Dia=5, Atualizar=false, Início=2024-01-08
+Obtido: Dia=5, Atualizar=false, Início=2024-01-08
+
+❌ Sábado 00h00
+Esperado: Dia=6, Atualizar=true, Início=2024-01-15
+Obtido: Dia=5, Atualizar=false, Início=2024-01-08
+
+
+Resumo:
+Total: 3 testes
+Sucessos: 2
+Falhas: 1
+Status: ALGUNS FALHARAM
+=====================================

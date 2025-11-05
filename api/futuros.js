@@ -1,6 +1,15 @@
 // API endpoint para retornar agendamentos futuros em formato JSON
 import { createClient } from '@supabase/supabase-js';
 
+// Função para converter data para o fuso horário America/Cuiaba (UTC-4)
+function toLocalDate(date) {
+    if (!date) return new Date();
+    const data = new Date(date);
+    const offset = -4; // UTC-4 para America/Cuiaba
+    const utc = data.getTime() + (data.getTimezoneOffset() * 60000);
+    return new Date(utc + (3600000 * offset));
+}
+
 const supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
 
@@ -27,7 +36,8 @@ export default async function handler(req, res) {
 
     try {
         // Data atual para filtrar apenas agendamentos futuros
-        const hoje = new Date().toISOString().split('T')[0];
+        const hojeLocal = toLocalDate(new Date());
+        const hoje = hojeLocal.toISOString().split('T')[0];
 
         // Buscar agendamentos futuros ordenados por data e hora
         const { data: agendamentos, error } = await supabase
@@ -47,7 +57,7 @@ export default async function handler(req, res) {
 
         // Processar dados para incluir informações úteis
         const agendamentosProcessados = agendamentos.map(agendamento => {
-            const dataObj = new Date(agendamento.data + 'T00:00:00');
+            const dataObj = toLocalDate(new Date(agendamento.data + 'T00:00:00'));
             const diaSemana = dataObj.toLocaleDateString('pt-BR', { weekday: 'long' });
             const dataFormatada = dataObj.toLocaleDateString('pt-BR');
             
@@ -79,7 +89,7 @@ export default async function handler(req, res) {
             success: true,
             data: agendamentosProcessados,
             estatisticas: estatisticas,
-            timestamp: new Date().toISOString()
+            timestamp: toLocalDate(new Date()).toISOString()
         });
 
     } catch (error) {

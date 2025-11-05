@@ -18,9 +18,32 @@ let cacheHolidays = {
 let agendamentos = [];
 let ultimaAtualizacaoSemana = new Date().toISOString().split('T')[0];
 
+// Função para converter data para fuso horário America/Cuiaba (UTC−4)
+function toLocalDate(date) {
+    // Se for string, converter para Date primeiro
+    if (typeof date === 'string') {
+        date = new Date(date);
+    }
+    
+    // Obter o offset do fuso horário America/Cuiaba (UTC−4)
+    // Em milissegundos: -4 horas = -4 * 60 * 60 * 1000 = -14400000ms
+    const offsetMs = -4 * 60 * 60 * 1000;
+    
+    // Criar uma nova data com o offset aplicado
+    const localDate = new Date(date.getTime() + offsetMs);
+    
+    // Ajustar para o horário local de Cuiabá
+    return localDate;
+}
+
 // Funções utilitárias para formatação internacional de datas
 function formatDateISO(date) {
-    return date.toISOString().split('T')[0];
+    // Usar data local em vez de UTC
+    const localDate = toLocalDate(date);
+    const year = localDate.getFullYear();
+    const month = (localDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = localDate.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function formatDateDisplay(dateString) {
@@ -31,11 +54,12 @@ function formatDateDisplay(dateString) {
 
 function formatDateTimeDisplay(date) {
     // Formato internacional para exibição: DD/MM/YYYY HH:MM
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const localDate = toLocalDate(date);
+    const day = localDate.getDate().toString().padStart(2, '0');
+    const month = (localDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = localDate.getFullYear();
+    const hours = localDate.getHours().toString().padStart(2, '0');
+    const minutes = localDate.getMinutes().toString().padStart(2, '0');
     return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
@@ -104,9 +128,10 @@ function isHoliday(dateString, holidays) {
 
 // Função para formatar data no padrão YYYY-MM-DD
 function formatDateForAPI(date) {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
+    const localDate = toLocalDate(date);
+    const year = localDate.getFullYear();
+    const month = (localDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = localDate.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
 
@@ -114,7 +139,7 @@ function formatDateForAPI(date) {
 function verificarAtualizacaoSemanal() {
     const agora = new Date();
     const hoje = formatDateISO(agora);
-    const diaSemana = agora.getDay();
+    const diaSemana = toLocalDate(agora).getDay();
     
     // Se mudou o dia e é sábado (dia 6), atualizar a visualização
     if (hoje !== ultimaAtualizacaoSemana && diaSemana === 6) {
@@ -133,12 +158,13 @@ function verificarAtualizacaoSemanal() {
 // Função para calcular tempo até próximo sábado 00:00
 function tempoAteProximoSabado() {
     const agora = new Date();
+    const localDate = toLocalDate(agora);
     const proximoSabado = new Date(agora);
     
     // Calcular dias até o próximo sábado (6 = sábado)
-    const diasAteProximoSabado = (6 - agora.getDay() + 7) % 7;
+    const diasAteProximoSabado = (6 - localDate.getDay() + 7) % 7;
     
-    if (diasAteProximoSabado === 0 && agora.getHours() === 0 && agora.getMinutes() === 0) {
+    if (diasAteProximoSabado === 0 && localDate.getHours() === 0 && localDate.getMinutes() === 0) {
         // É exatamente sábado 00:00, próximo sábado é em 7 dias
         proximoSabado.setDate(agora.getDate() + 7);
     } else if (diasAteProximoSabado === 0) {
@@ -192,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dataInput = document.getElementById('data');
     const hoje = new Date();
-    const dataMinima = hoje.toISOString().split('T')[0];
+    const dataMinima = formatDateISO(hoje);
     dataInput.min = dataMinima;
 
     const horaFimSelect = document.getElementById('hora-fim');
@@ -208,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (this.value) {
             const [ano, mes, dia] = this.value.split('-').map(Number);
             const dataSelecionada = new Date(ano, mes - 1, dia);
-            const diaSemana = dataSelecionada.getDay();
+            const diaSemana = toLocalDate(dataSelecionada).getDay();
             
             if (diaSemana === 0 || diaSemana === 6) {
                 alert('Agendamentos não são permitidos aos sábados e domingos. Por favor, selecione um dia útil.');
@@ -601,8 +627,9 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
 
     // Calcular dinamicamente a semana baseada no índice selecionado
     const hoje = new Date();
+    const hojeLocal = toLocalDate(hoje);
     console.log('Data atual:', formatDateTimeDisplay(hoje));
-    const diaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
+    const diaSemana = hojeLocal.getDay(); // 0 = domingo, 1 = segunda, etc.
     console.log('Dia da semana atual:', diaSemana);
     
     // Calcular a segunda-feira da semana base (atual ou próxima)
@@ -620,6 +647,9 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
         segundaFeiraBase.setDate(hoje.getDate() - diasVoltarParaSegunda);
     }
     
+    // Ajustar para o fuso horário local
+    segundaFeiraBase = toLocalDate(segundaFeiraBase);
+    
     // Calcular a segunda-feira da semana selecionada
     const segundaFeira = new Date(segundaFeiraBase);
     segundaFeira.setDate(segundaFeiraBase.getDate() + (semanaIndex * 7));
@@ -633,7 +663,8 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
     for (let i = 0; i < 5; i++) {
         const dia = new Date(segundaFeira);
         dia.setDate(segundaFeira.getDate() + i);
-        const diaISO = formatDateISO(dia);
+        const diaLocal = toLocalDate(dia);
+        const diaISO = formatDateISO(diaLocal);
         diasSemana.push(diaISO);
         console.log(`${nomesDias[i]}: ${formatDateDisplay(diaISO)}`);
     }
@@ -1048,7 +1079,7 @@ function gerarPDF() {
     });
 
     // Salvar PDF
-    const dataArquivo = formatDateISO(hoje).replace(/-/g, '_');
+    const dataArquivo = formatDateISO(new Date()).replace(/-/g, '_');
     const nomeArquivo = `historico_agendamentos_${dataArquivo}.pdf`;
     doc.save(nomeArquivo);
 }
@@ -1060,7 +1091,7 @@ document.getElementById('btn-baixar-pdf').addEventListener('click', gerarPDF);
 // Função para verificar se precisa atualizar o menu (chamada periodicamente)
 function verificarAtualizacaoMenu() {
     const hoje = new Date();
-    const diaSemana = hoje.getDay();
+    const diaSemana = toLocalDate(hoje).getDay();
     
     // Se é sábado, regenerar opções para eliminar semana atual
     if (diaSemana === 6) {
@@ -1083,7 +1114,7 @@ document.getElementById('week-selector').addEventListener('change', async functi
     
     // Recarregar agendamentos para a semana selecionada
     const hoje = new Date();
-    const hojeISO = hoje.toISOString().split('T')[0];
+    const hojeISO = formatDateISO(hoje);
     
     const { data, error } = await supabaseClient
         .from('agendamentos')
@@ -1555,13 +1586,14 @@ async function processarEnvioFormulario(dados) {
 
         const dataAgendamento = new Date(dados.data + 'T00:00:00');
         const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
+        const hojeLocal = toLocalDate(hoje);
+        hojeLocal.setHours(0, 0, 0, 0);
 
-        if (dataAgendamento < hoje) {
+        if (toLocalDate(dataAgendamento) < hojeLocal) {
             throw new Error('Não é possível agendar para datas passadas.');
         }
 
-        const diaSemana = dataAgendamento.getDay();
+        const diaSemana = toLocalDate(dataAgendamento).getDay();
         if (diaSemana === 0 || diaSemana === 6) {
             throw new Error('Agendamentos não são permitidos aos finais de semana.');
         }
