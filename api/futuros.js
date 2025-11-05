@@ -4,10 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 // Função para converter data para o fuso horário America/Cuiaba (UTC-4)
 function toLocalDate(date) {
     if (!date) return new Date();
+    // As datas do Supabase já vêm em UTC, então apenas aplicamos o offset direto
     const data = new Date(date);
     const offset = -4; // UTC-4 para America/Cuiaba
-    const utc = data.getTime() + (data.getTimezoneOffset() * 60000);
-    return new Date(utc + (3600000 * offset));
+    return new Date(data.getTime() + (3600000 * offset));
 }
 
 const supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
