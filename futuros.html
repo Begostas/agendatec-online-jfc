@@ -290,7 +290,7 @@
             // Atualizar cabeçalhos com as datas
             const cabecalhos = document.querySelectorAll('.tabela-semanal .dia-col');
             for (let i = 0; i < 5; i++) {
-                const data = toLocalDate(inicioSemana);
+                const data = new Date(inicioSemana);
                 data.setDate(inicioSemana.getDate() + i);
                 const diaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'][i];
                 cabecalhos[i].textContent = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})`;
@@ -309,7 +309,7 @@
                 // Células para cada dia da semana
                 for (let dia = 0; dia < 5; dia++) {
                     const celula = document.createElement('td');
-                    const dataAtual = toLocalDate(inicioSemana);
+                    const dataAtual = new Date(inicioSemana);
                     dataAtual.setDate(inicioSemana.getDate() + dia);
                     const dataString = formatDateISO(dataAtual);
 
