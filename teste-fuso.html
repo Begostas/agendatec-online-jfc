@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Fuso Horário</title>
+    <script>
+        // Função toLocalDate copiada do supabase-config.js para teste independente
+        function toLocalDate(date) {
+            if (!date) return new Date();
+            // As datas do Supabase já vêm em UTC, precisamos converter para o fuso local
+            const data = new Date(date);
+            // Aplicar o offset de -4 horas (America/Cuiaba é UTC-4)
+            const offset = -4 * 60; // -4 horas em minutos
+            const localTime = new Date(data.getTime() + (offset * 60000));
+            return localTime;
+        }
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Fuso Horário - America/Cuiaba (UTC-4)</h1>
+    <div id="resultados"></div>
+
+    <script>
+        function formatDateDisplay(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function formatDateISO(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function adicionarResultado(titulo, conteudo, tipo = 'info') {
+            const resultados = document.getElementById('resultados');
+            const div = document.createElement('div');
+            div.className = `test-result ${tipo}`;
+            div.innerHTML = `<h3>${titulo}</h3><p>${conteudo}</p>`;
+            resultados.appendChild(div);
+        }
+
+        // Teste 1: Verificar data atual no fuso horário local
+        const agora = new Date();
+        const agoraLocal = toLocalDate(agora);
+        
+        adicionarResultado(
+            'Data/Hora Atual',
+            `UTC: ${agora.toISOString()}<br>
+             Local (America/Cuiaba): ${agoraLocal.toISOString()}<br>
+             Data Local: ${formatDateDisplay(formatDateISO(agoraLocal))}`,
+            'info'
+        );
+
+        // Teste 2: Simular diferentes horários para testar virada de dia
+        const horariosTeste = [
+            '2024-11-03T00:00:00', // Meia-noite UTC
+            '2024-11-03T03:59:59', // 23:59:59 local (ainda dia 2)
+            '2024-11-03T04:00:00', // 00:00:00 local (virada de dia)
+            '2024-11-03T08:00:00', // 04:00:00 local
+        ];
+
+        horariosTeste.forEach(horarioUTC => {
+            const dataUTC = new Date(horarioUTC);
+            const dataLocal = toLocalDate(dataUTC);
+            
+            adicionarResultado(
+                `Teste: ${horarioUTC} UTC`,
+                `Data UTC: ${formatDateDisplay(dataUTC.toISOString().split('T')[0])}<br>
+                 Data Local: ${formatDateDisplay(formatDateISO(dataLocal))}<br>
+                 Diferença: ${dataUTC.getDate() !== dataLocal.getDate() ? 'DIA DIFERENTE' : 'MESMO DIA'}`,
+                dataUTC.getDate() !== dataLocal.getDate() ? 'success' : 'error'
+            );
+        });
+
+        // Teste 3: Verificar semana atual
+        const hoje = new Date();
+        const hojeLocal = toLocalDate(hoje);
+        const diaSemana = hojeLocal.getDay();
+        
+        // Calcular segunda-feira da semana
+        let segundaFeiraBase = new Date(hojeLocal);
+        if (diaSemana === 6) {
+            segundaFeiraBase.setDate(hojeLocal.getDate() + 2);
+        } else if (diaSemana === 0) {
+            segundaFeiraBase.setDate(hojeLocal.getDate() + 1);
+        } else {
+            const diasVoltarParaSegunda = diaSemana - 1;
+            segundaFeiraBase.setDate(hojeLocal.getDate() - diasVoltarParaSegunda);
+        }
+
+        const diasSemana = [];
+        for (let i = 0; i < 5; i++) {
+            const dia = new Date(segundaFeiraBase);
+            dia.setDate(segundaFeiraBase.getDate() + i);
+            diasSemana.push(formatDateISO(dia));
+        }
+
+        adicionarResultado(
+            'Semana Atual no Calendário',
+            `Hoje (local): ${formatDateDisplay(formatDateISO(hojeLocal))}<br>
+             Segunda-feira: ${formatDateDisplay(diasSemana[0])}<br>
+             Terça-feira: ${formatDateDisplay(diasSemana[1])}<br>
+             Quarta-feira: ${formatDateDisplay(diasSemana[2])}<br>
+             Quinta-feira: ${formatDateDisplay(diasSemana[3])}<br>
+             Sexta-feira: ${formatDateDisplay(diasSemana[4])}`,
+            'info'
+        );
+
+        // Teste 4: Verificar se 3 de novembro aparece corretamente
+        const dataTeste = new Date('2024-11-03T12:00:00');
+        const dataTesteLocal = toLocalDate(dataTeste);
+        
+        adicionarResultado(
+            'Teste Específico: 3 de Novembro',
+            `Data UTC: 2024-11-03<br>
+             Data Local: ${formatDateDisplay(formatDateISO(dataTesteLocal))}<br>
+             Deve aparecer como: 03/11/2024`,
+            formatDateDisplay(formatDateISO(dataTesteLocal)) === '03/11/2024' ? 'success' : 'error'
+        );
+
+        // Teste 5: Simular migração para histórico
+        const hojeParaMigracao = new Date();
+        const hojeLocalParaMigracao = toLocalDate(hojeParaMigracao);
+        const ontem = new Date(hojeLocalParaMigracao);
+        ontem.setDate(hojeLocalParaMigracao.getDate() - 1);
+        
+        adicionarResultado(
+            'Teste de Migração',
+            `Data de hoje (local): ${formatDateDisplay(formatDateISO(hojeLocalParaMigracao))}<br>
+             Data de ontem (local): ${formatDateDisplay(formatDateISO(ontem))}<br>
+             Agendamentos com data < ${formatDateDisplay(formatDateISO(hojeLocalParaMigracao))} seriam migrados`,
+            'info'
+        );
+    </script>
+</body>
+</html>

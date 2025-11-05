@@ -488,15 +488,16 @@ function atualizarHorariosFim(horaInicio) {
 // Move agendamentos antigos para histórico
 async function moverParaHistorico() {
     const hoje = new Date();
-    const ontem = new Date(hoje);
-    ontem.setDate(hoje.getDate() - 1);
+    const hojeLocal = toLocalDate(hoje);
+    const ontem = new Date(hojeLocal);
+    ontem.setDate(hojeLocal.getDate() - 1);
     const ontemISO = ontem.toISOString().split('T')[0];
 
     // Buscar agendamentos antigos
     const { data: agendamentosAntigos, error: errorSelect } = await supabaseClient
         .from('agendamentos')
         .select('*')
-        .lt('"data"', hoje.toISOString().split('T')[0]);
+        .lt('"data"', hojeLocal.toISOString().split('T')[0]);
 
     if (errorSelect) {
         console.error("Erro ao buscar agendamentos antigos:", errorSelect.message);
@@ -529,7 +530,7 @@ async function moverParaHistorico() {
         await supabaseClient
             .from('agendamentos')
             .delete()
-            .lt('"data"', hoje.toISOString().split('T')[0]);
+            .lt('"data"', hojeLocal.toISOString().split('T')[0]);
     }
 }
 
@@ -600,7 +601,8 @@ async function carregarAgendamentos() {
     await moverParaHistorico();
 
     const hoje = new Date();
-    const hojeISO = hoje.toISOString().split('T')[0];
+    const hojeLocal = toLocalDate(hoje);
+    const hojeISO = hojeLocal.toISOString().split('T')[0];
 
     const { data, error } = await supabaseClient
         .from('agendamentos')
