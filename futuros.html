@@ -255,7 +255,9 @@
             try {
                 showLoading();
                 
-                const inicioSemana = new Date(weekSelector.value);
+                // Converter a data ISO do seletor para objeto Date local
+                const [ano, mes, dia] = weekSelector.value.split('-').map(Number);
+                const inicioSemana = new Date(ano, mes - 1, dia);
                 const fimSemana = new Date(inicioSemana);
                 fimSemana.setDate(inicioSemana.getDate() + 4);
 
