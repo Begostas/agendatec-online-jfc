@@ -3,13 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 
 // Função para converter data para o fuso horário America/Cuiaba (UTC-4)
 function toLocalDate(date) {
-    if (!date) return new Date();
-    // As datas do Supabase já vêm em UTC, precisamos converter para o fuso local
-    const data = new Date(date);
-    // Aplicar o offset de -4 horas (America/Cuiaba é UTC-4)
-    const offset = -4 * 60; // -4 horas em minutos
-    const localTime = new Date(data.getTime() + (offset * 60000));
-    return localTime;
+    return new Date(date || Date.now());
+}
+
+function formatDateISO(date) {
+    const d = new Date(date);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
 }
 
 const supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
@@ -39,7 +41,7 @@ export default async function handler(req, res) {
     try {
         // Data atual para filtrar apenas agendamentos futuros
         const hojeLocal = toLocalDate(new Date());
-        const hoje = hojeLocal.toISOString().split('T')[0];
+        const hoje = formatDateISO(hojeLocal);
 
         // Buscar agendamentos futuros ordenados por data e hora
         const { data: agendamentos, error } = await supabase

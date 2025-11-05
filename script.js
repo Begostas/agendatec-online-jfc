@@ -16,24 +16,14 @@ let cacheHolidays = {
 
 // Variáveis globais
 let agendamentos = [];
-let ultimaAtualizacaoSemana = new Date().toISOString().split('T')[0];
+let ultimaAtualizacaoSemana = formatDateForAPI(new Date());
 
 // Função para converter data para fuso horário America/Cuiaba (UTC−4)
 function toLocalDate(date) {
-    // Se for string, converter para Date primeiro
     if (typeof date === 'string') {
-        date = new Date(date);
+        return new Date(date);
     }
-    
-    // Obter o offset do fuso horário America/Cuiaba (UTC−4)
-    // Em milissegundos: -4 horas = -4 * 60 * 60 * 1000 = -14400000ms
-    const offsetMs = -4 * 60 * 60 * 1000;
-    
-    // Criar uma nova data com o offset aplicado
-    const localDate = new Date(date.getTime() + offsetMs);
-    
-    // Ajustar para o horário local de Cuiabá
-    return localDate;
+    return new Date(date);
 }
 
 // Funções utilitárias para formatação internacional de datas
@@ -491,13 +481,13 @@ async function moverParaHistorico() {
     const hojeLocal = toLocalDate(hoje);
     const ontem = new Date(hojeLocal);
     ontem.setDate(hojeLocal.getDate() - 1);
-    const ontemISO = ontem.toISOString().split('T')[0];
+    const ontemISO = formatDateForAPI(ontem);
 
     // Buscar agendamentos antigos
     const { data: agendamentosAntigos, error: errorSelect } = await supabaseClient
         .from('agendamentos')
         .select('*')
-        .lt('"data"', hojeLocal.toISOString().split('T')[0]);
+        .lt('"data"', formatDateForAPI(hojeLocal));
 
     if (errorSelect) {
         console.error("Erro ao buscar agendamentos antigos:", errorSelect.message);
@@ -530,7 +520,7 @@ async function moverParaHistorico() {
         await supabaseClient
             .from('agendamentos')
             .delete()
-            .lt('"data"', hojeLocal.toISOString().split('T')[0]);
+            .lt('"data"', formatDateForAPI(hojeLocal));
     }
 }
 
@@ -602,7 +592,7 @@ async function carregarAgendamentos() {
 
     const hoje = new Date();
     const hojeLocal = toLocalDate(hoje);
-    const hojeISO = hojeLocal.toISOString().split('T')[0];
+    const hojeISO = formatDateForAPI(hojeLocal);
 
     const { data, error } = await supabaseClient
         .from('agendamentos')

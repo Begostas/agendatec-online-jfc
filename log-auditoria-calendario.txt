@@ -1,0 +1,52 @@
+Auditoria de calendário e origem de datas (local, sem toISOString)
+Fonte de dados: cálculo local por incremento de dias; sem dependência externa
+
+[SEMANA] 03/11/2025 (Segunda) → 07/11/2025 (Sexta)
+- Início (ISO): 2025-11-03
+- Início (BR): 03/11/2025
+- Fim (ISO): 2025-11-07
+- Fim (BR): 07/11/2025
+- Dias calculados (Seg→Sex):
+  • 03/11/2025  | ISO 2025-11-03  | origem: local
+  • 04/11/2025  | ISO 2025-11-04  | origem: local
+  • 05/11/2025  | ISO 2025-11-05  | origem: local
+  • 06/11/2025  | ISO 2025-11-06  | origem: local
+  • 07/11/2025  | ISO 2025-11-07  | origem: local
+
+[SEMANA] 28/04/2025 (Segunda) → 02/05/2025 (Sexta)
+- Início (ISO): 2025-04-28
+- Início (BR): 28/04/2025
+- Fim (ISO): 2025-05-02
+- Fim (BR): 02/05/2025
+- Dias calculados (Seg→Sex):
+  • 28/04/2025  | ISO 2025-04-28  | origem: local
+  • 29/04/2025  | ISO 2025-04-29  | origem: local
+  • 30/04/2025  | ISO 2025-04-30  | origem: local
+  • 01/05/2025  | ISO 2025-05-01  | origem: local
+  • 02/05/2025  | ISO 2025-05-02  | origem: local
+
+[SEMANA] 29/12/2025 (Segunda) → 02/01/2026 (Sexta)
+- Início (ISO): 2025-12-29
+- Início (BR): 29/12/2025
+- Fim (ISO): 2026-01-02
+- Fim (BR): 02/01/2026
+- Dias calculados (Seg→Sex):
+  • 29/12/2025  | ISO 2025-12-29  | origem: local
+  • 30/12/2025  | ISO 2025-12-30  | origem: local
+  • 31/12/2025  | ISO 2025-12-31  | origem: local
+  • 01/01/2026  | ISO 2026-01-01  | origem: local
+  • 02/01/2026  | ISO 2026-01-02  | origem: local
+
+[SEMANA] 28/02/2028 (Segunda) → 03/03/2028 (Sexta)
+- Início (ISO): 2028-02-28
+- Início (BR): 28/02/2028
+- Fim (ISO): 2028-03-03
+- Fim (BR): 03/03/2028
+- Dias calculados (Seg→Sex):
+  • 28/02/2028  | ISO 2028-02-28  | origem: local
+  • 29/02/2028  | ISO 2028-02-29  | origem: local
+  • 01/03/2028  | ISO 2028-03-01  | origem: local
+  • 02/03/2028  | ISO 2028-03-02  | origem: local
+  • 03/03/2028  | ISO 2028-03-03  | origem: local
+
+Conclusão: Cálculo local consistente em transições de mês/ano e ano bissexto.

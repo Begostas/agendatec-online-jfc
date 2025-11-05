@@ -4,13 +4,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Função para converter data para o fuso horário America/Cuiaba (UTC-4)
 function toLocalDate(date) {
-    if (!date) return new Date();
-    // As datas do Supabase já vêm em UTC, precisamos converter para o fuso local
-    const data = new Date(date);
-    // Aplicar o offset de -4 horas (America/Cuiaba é UTC-4)
-    const offset = -4 * 60; // -4 horas em minutos
-    const localTime = new Date(data.getTime() + (offset * 60000));
-    return localTime;
+    return new Date(date || Date.now());
 }
 
 // Criar cliente Supabase usando createClient do pacote @supabase/supabase-js
@@ -20,7 +14,9 @@ const supabaseClient = supabase; // Manter compatibilidade com código existente
 // Função para remover agendamentos com mais de 15 dias
 async function removerAgendamentosAntigos() {
     const hoje = toLocalDate(new Date());
-    const limite = new Date(hoje.setDate(hoje.getDate() - 15)).toISOString().split('T')[0];
+    const dataLimite = new Date(hoje);
+    dataLimite.setDate(hoje.getDate() - 15);
+    const limite = `${dataLimite.getFullYear()}-${(dataLimite.getMonth()+1).toString().padStart(2,'0')}-${dataLimite.getDate().toString().padStart(2,'0')}`;
 
     const { error } = await supabaseClient
         .from('agendamentos')
