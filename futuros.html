@@ -186,10 +186,12 @@
         // Função para converter data para o fuso horário America/Cuiaba (UTC-4)
         function toLocalDate(date) {
             if (!date) return new Date();
-            // As datas do Supabase já vêm em UTC, então apenas aplicamos o offset direto
+            // As datas do Supabase já vêm em UTC, precisamos converter para o fuso local
             const data = new Date(date);
-            const offset = -4; // UTC-4 para America/Cuiaba
-            return new Date(data.getTime() + (3600000 * offset));
+            // Aplicar o offset de -4 horas (America/Cuiaba é UTC-4)
+            const offset = -4 * 60; // -4 horas em minutos
+            const localTime = new Date(data.getTime() + (offset * 60000));
+            return localTime;
         }
 
         // Elementos DOM
