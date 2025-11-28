@@ -317,6 +317,8 @@
                     const dataAtual = new Date(inicioSemana);
                     dataAtual.setDate(inicioSemana.getDate() + dia);
                     const dataString = formatDateISO(dataAtual);
+                    // Anexar data ISO local à célula para facilitar auditoria/teste
+                    celula.setAttribute('data-date', dataString);
 
                     // Filtrar agendamentos para este dia e horário
                     const agendamentosDoDia = agendamentos.filter(ag => {
@@ -543,8 +545,34 @@
                 
                 console.log(`Evento (futuros): ${eventType}`, { newRecord, oldRecord });
                 
+                // Preparar log local de teste
+                window.__realtimeTestLog = window.__realtimeTestLog || [];
+                const agData = (newRecord && newRecord.data) || (oldRecord && oldRecord.data) || null;
+                const contarItensPorData = (iso) => {
+                    if (!iso) return null;
+                    const cells = document.querySelectorAll(`[data-date="${iso}"]`);
+                    let total = 0;
+                    cells.forEach(cell => {
+                        total += cell.querySelectorAll('.agendamento-item').length;
+                    });
+                    return total;
+                };
+                const beforeCount = contarItensPorData(agData);
+                
                 // Recarrega os agendamentos para manter consistência
                 await carregarAgendamentosSemana();
+                
+                // Após render, medir novamente
+                setTimeout(() => {
+                    const afterCount = contarItensPorData(agData);
+                    window.__realtimeTestLog.push({
+                        ts: new Date().toISOString(),
+                        eventType,
+                        data: agData,
+                        beforeCount,
+                        afterCount
+                    });
+                }, 200);
                 
                 // Mostra notificação visual para o usuário
                 mostrarNotificacaoRealtimeFuturos(eventType, newRecord, oldRecord);

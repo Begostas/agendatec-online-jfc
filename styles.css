@@ -506,10 +506,8 @@ footer a:hover, header a:hover {
 
 
 /* Ajustes para tema escuro */
-::-webkit-calendar-picker-indicator {
-    filter: invert(1) brightness(2);
-    opacity: 1;
-    cursor: pointer;
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
 }
 
 select option {
