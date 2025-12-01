@@ -53,6 +53,18 @@ function formatDateTimeDisplay(date) {
     return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
+function parseDateBR(diaMesAno) {
+    if (!diaMesAno) return new Date(NaN);
+    if (diaMesAno.includes('/')) {
+        const [dia, mes, ano] = diaMesAno.split('/').map(Number);
+        return new Date(ano, mes - 1, dia);
+    }
+    if (diaMesAno.includes('-')) {
+        const [ano, mes, dia] = diaMesAno.split('-').map(Number);
+        return new Date(ano, mes - 1, dia);
+    }
+    return new Date(diaMesAno);
+}
 // Função para buscar feriados da API
 async function buscarFeriados(ano) {
     // Verificar cache primeiro
@@ -1576,7 +1588,7 @@ async function processarEnvioFormulario(dados) {
             throw new Error('Você pode selecionar apenas um espaço por agendamento.');
         }
 
-        const dataAgendamento = new Date(dados.data + 'T00:00:00');
+        const dataAgendamento = parseDateBR(dados.data);
         const hoje = new Date();
         const hojeLocal = toLocalDate(hoje);
         hojeLocal.setHours(0, 0, 0, 0);
