@@ -695,6 +695,22 @@ select option {
     cursor: pointer;
 }
 
+/* Box visual interno para cada agendamento */
+.agendamento-box {
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin: 4px 0;
+    background: #e6e6e6;
+}
+
+.agendamento-info {
+    background: #cfe8ff !important;
+}
+
+.agendamento-anf {
+    background: #ffebcc !important;
+}
+
 /* Tooltip para mensagens dos agendamentos - implementado em JavaScript */
 .custom-tooltip {
     position: absolute;

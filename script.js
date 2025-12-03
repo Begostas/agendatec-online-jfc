@@ -751,7 +751,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
                 agendamentosPorDiaHora[data][horario].forEach(ag => {
                     const agendamentoDiv = document.createElement('div');
-                    agendamentoDiv.className = 'agendamento-item';
+                    agendamentoDiv.className = 'agendamento-item agendamento-box';
                     
                     // Adicionar tooltip com mensagem se existir
                     if (ag.mensagem && ag.mensagem.trim() !== '') {
@@ -766,9 +766,17 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     const equipamentoDiv = document.createElement('div');
                     equipamentoDiv.className = 'agendamento-equipamento';
                     equipamentoDiv.textContent = ag.equipamentos.join(', ');
-                    
+
                     agendamentoDiv.appendChild(nomeDiv);
                     agendamentoDiv.appendChild(equipamentoDiv);
+                    // Aplicar classes visuais no elemento interno conforme equipamentos
+                    const eqs = Array.isArray(ag.equipamentos) ? ag.equipamentos : [];
+                    if (eqs.some(e => e === 'Lousa Informática' || e === 'Sala de Informática')) {
+                        agendamentoDiv.classList.add('agendamento-info');
+                    }
+                    if (eqs.some(e => e === 'Anfiteatro' || e === 'Lousa Anfiteatro')) {
+                        agendamentoDiv.classList.add('agendamento-anf');
+                    }
                     td.appendChild(agendamentoDiv);
                 });
             } else {
