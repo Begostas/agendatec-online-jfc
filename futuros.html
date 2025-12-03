@@ -332,15 +332,24 @@
                                horarioAtual < agFim;
                     });
 
-                    // Adicionar agendamentos à célula
+                    // Adicionar agendamentos à célula (elemento interno com estilos condicionais)
                     agendamentosDoDia.forEach(agendamento => {
                         const item = document.createElement('div');
-                        item.className = 'agendamento-item';
+                        item.className = 'agendamento-item agendamento-box';
                         item.innerHTML = `
                             <strong>${agendamento.nome}</strong><br>
                             <small>${agendamento.turma}</small><br>
                             <small>${agendamento.horaInicio} - ${agendamento.horaFim}</small>
                         `;
+
+                        // Aplicar classes visuais somente no elemento interno conforme equipamentos
+                        const eqs = Array.isArray(agendamento.equipamentos) ? agendamento.equipamentos : [];
+                        if (eqs.some(e => e === 'Lousa Informática' || e === 'Sala de Informática')) {
+                            item.classList.add('agendamento-info');
+                        }
+                        if (eqs.some(e => e === 'Anfiteatro' || e === 'Lousa Anfiteatro')) {
+                            item.classList.add('agendamento-anf');
+                        }
                         
                         if (agendamento.mensagem && agendamento.mensagem.trim() !== '') {
                             setupTooltip(item, agendamento.mensagem);
