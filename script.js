@@ -797,6 +797,15 @@ function horarioParaMinutos(horario) {
     return horas * 60 + minutos;
 }
 
+// Regras de família para espaços fixos e lousas móveis
+const FIXOS = ["Sala de Informática", "Anfiteatro", "Biblioteca"];
+const MOVEIS = ["Lousa Informática", "Lousa Anfiteatro", "Lousa Biblioteca"];
+const FAMILIA = {
+  "Sala de Informática": "Lousa Informática",
+  "Anfiteatro": "Lousa Anfiteatro",
+  "Biblioteca": "Lousa Biblioteca"
+};
+
 async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma, nome) {
     try {
         // Consulta otimizada: buscar apenas campos necessários
@@ -833,16 +842,52 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
             console.log(`Sobreposição: ${temSobreposicao} (${inicioMinutos} < ${agFimMinutos} = ${inicioMinutos < agFimMinutos}) && (${fimMinutos} > ${agInicioMinutos} = ${fimMinutos > agInicioMinutos})`);
 
             if (temSobreposicao) {
-                // Verificar conflito de equipamentos
+                // Verificar conflito de equipamentos (mantido como está hoje)
                 const equipamentosConflito = ag.equipamentos.filter(eq => equipamentos.includes(eq));
-                
                 if (equipamentosConflito.length > 0) {
                     return `Conflito de equipamento: ${equipamentosConflito.join(', ')} já está(ão) agendado(s) das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`;
                 }
 
-                // Verificar conflito de turma
+                // Verificar conflito de turma com novas regras FIXO/MÓVEL por família
                 if (ag.turma === turma) {
-                    return `Conflito de turma: A turma "${turma}" já tem agendamento das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`;
+                    // Classificar novos e existentes entre FIXOS e MÓVEIS
+                    const novos = Array.isArray(equipamentos) ? equipamentos : [];
+                    const existentes = Array.isArray(ag.equipamentos) ? ag.equipamentos : [];
+
+                    const novoFixo = novos.find(e => FIXOS.includes(e));
+                    const novoMovel = novos.find(e => MOVEIS.includes(e));
+                    const existenteFixo = existentes.find(e => FIXOS.includes(e));
+                    const existenteMovel = existentes.find(e => MOVEIS.includes(e));
+
+                    // Regra 1: FIXO + FIXO (mesmo dia/horário/turma) → BLOQUEAR
+                    if (novoFixo && existenteFixo) {
+                        const existente = existenteFixo;
+                        return `🚫 Ops! A turma "${turma}" já reservou um espaço fixo neste horário (${existente}).\nEspaços como Sala de Informática, Biblioteca e Anfiteatro só podem ser usados um por vez.`;
+                    }
+
+                    // Regra 2: MÓVEL + MÓVEL (mesmo dia/horário/turma) → BLOQUEAR
+                    if (novoMovel && existenteMovel) {
+                        const existente = existenteMovel;
+                        return `🚫 Atenção! A turma "${turma}" já reservou um equipamento móvel neste horário (${existente}).\nSomente uma lousa pode ser utilizada por vez.`;
+                    }
+
+                    // Regra 3: FIXO + MÓVEL (mesmo dia/horário/turma)
+                    if ((novoFixo && existenteMovel) || (novoMovel && existenteFixo)) {
+                        const fixo = novoFixo || existenteFixo;
+                        const movel = novoMovel || existenteMovel;
+
+                        // Se são da mesma família → PERMITIR (sem conflito)
+                        if (fixo && movel && FAMILIA[fixo] === movel) {
+                            // permitido: continuar verificando outros agendamentos
+                        } else {
+                            const novo = novoFixo ? novoFixo : novoMovel;
+                            const existente = novoFixo ? existenteMovel : existenteFixo;
+                            return `⚠️ Atenção! Para esta turma o uso combinado só é permitido quando espaço e equipamento são da mesma família.\nVocê tentou usar "${novo}" junto com "${existente}".\nExemplo permitido: "${FAMILIA[fixo]}" com "${fixo}".`;
+                        }
+                    } else {
+                        // Qualquer outra combinação de mesma turma e horário mantém regra atual: bloquear
+                        return `Conflito de turma: A turma "${turma}" já tem agendamento das ${ag.horaInicio} às ${ag.horaFim} para "${ag.nome}".`;
+                    }
                 }
             }
         }
