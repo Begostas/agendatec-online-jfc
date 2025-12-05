@@ -711,6 +711,11 @@ select option {
     background: #ffc8aa !important;
 }
 
+/* Biblioteca */
+.agendamento-bib {
+    background: #ff9bcc !important;
+}
+
 /* Tooltip para mensagens dos agendamentos - implementado em JavaScript */
 .custom-tooltip {
     position: absolute;

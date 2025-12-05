@@ -350,6 +350,9 @@
                         if (eqs.some(e => e === 'Anfiteatro' || e === 'Lousa Anfiteatro')) {
                             item.classList.add('agendamento-anf');
                         }
+                        if (eqs.some(e => e === 'Biblioteca' || e === 'Lousa Biblioteca')) {
+                            item.classList.add('agendamento-bib');
+                        }
                         
                         if (agendamento.mensagem && agendamento.mensagem.trim() !== '') {
                             setupTooltip(item, agendamento.mensagem);

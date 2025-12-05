@@ -777,6 +777,9 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     if (eqs.some(e => e === 'Anfiteatro' || e === 'Lousa Anfiteatro')) {
                         agendamentoDiv.classList.add('agendamento-anf');
                     }
+                    if (eqs.some(e => e === 'Biblioteca' || e === 'Lousa Biblioteca')) {
+                        agendamentoDiv.classList.add('agendamento-bib');
+                    }
                     td.appendChild(agendamentoDiv);
                 });
             } else {
