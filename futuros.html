@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <style>
         /* Estilos específicos para a página de agendamentos futuros */
         .futuros-container {
@@ -178,11 +179,6 @@
     </div>
 
     <script>
-        // Configuração do Supabase
-        const supabaseUrl = 'https://nlcbvdlvkmomrtmrdrqb.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sY2J2ZGx2a21vbXJ0bXJkcnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0ODM1NjksImV4cCI6MjA3MDA1OTU2OX0.Ql9FUmGU-pDrSVdHXQiQC_sOpEjPQyLJR5_n9KlhJ68';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
         // Função para converter data para o fuso horário America/Cuiaba (UTC-4)
         function toLocalDate(date) {
             if (!date) return new Date();
@@ -269,7 +265,7 @@
                 const inicioSemanaISO = formatDateISO(inicioSemana);
                 const fimSemanaISO = formatDateISO(fimSemana);
 
-                const { data: agendamentos, error } = await supabase
+                const { data: agendamentos, error } = await supabaseClient
                     .from('agendamentos')
                     .select('*')
                     .gte('data', inicioSemanaISO)
@@ -519,11 +515,11 @@
         function iniciarRealtimeMonitoring() {
             // Remove canal anterior se existir
             if (realtimeChannel) {
-                supabase.removeChannel(realtimeChannel);
+                supabaseClient.removeChannel(realtimeChannel);
             }
 
             // Cria novo canal para monitorar a tabela agendamentos
-            realtimeChannel = supabase
+            realtimeChannel = supabaseClient
                 .channel('futuros-agendamentos-changes')
                 .on(
                     'postgres_changes',
@@ -720,7 +716,7 @@
         // Função para limpar conexões Realtime ao sair da página
         function limparRealtimeConnectionsFuturos() {
             if (realtimeChannel) {
-                supabase.removeChannel(realtimeChannel);
+                supabaseClient.removeChannel(realtimeChannel);
                 console.log('🔌 Conexão Realtime encerrada (futuros)');
             }
         }
