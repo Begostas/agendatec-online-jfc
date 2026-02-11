@@ -7,9 +7,8 @@ function toLocalDate(date) {
     return new Date(date || Date.now());
 }
 
-// Criar cliente Supabase usando createClient do pacote @supabase/supabase-js
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const supabaseClient = supabase; // Manter compatibilidade com código existente
+// Criar cliente Supabase único global
+window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Função para remover agendamentos com mais de 15 dias
 async function removerAgendamentosAntigos() {

@@ -1324,11 +1324,11 @@ let realtimeChannel = null;
 function iniciarRealtimeMonitoring() {
     // Remove canal anterior se existir
     if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
+        supabaseClient.removeChannel(realtimeChannel);
     }
 
     // Cria novo canal para monitorar a tabela agendamentos
-    realtimeChannel = supabase
+    realtimeChannel = supabaseClient
         .channel('agendamentos-changes')
         .on(
             'postgres_changes',
@@ -1363,7 +1363,7 @@ async function atualizarTabelaRealtime(payload) {
         console.log(`Evento Realtime: ${eventType}`, { newRecord, oldRecord });
         
         // Força recarregar os agendamentos diretamente do Supabase
-        const { data: novosAgendamentos, error } = await supabase
+        const { data: novosAgendamentos, error } = await supabaseClient
             .from('agendamentos')
             .select('*')
             .order('data', { ascending: true });
@@ -1511,7 +1511,7 @@ function mostrarNotificacaoRealtime(eventType, newRecord, oldRecord) {
 // Função para limpar conexões Realtime ao sair da página
 function limparRealtimeConnections() {
     if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
+        supabaseClient.removeChannel(realtimeChannel);
         console.log('🔌 Conexão Realtime encerrada');
     }
 }
@@ -1676,7 +1676,7 @@ async function processarEnvioFormulario(dados) {
         }
 
         // Inserir no Supabase
-        const { data: novoAgendamento, error } = await supabase
+        const { data: novoAgendamento, error } = await supabaseClient
             .from('agendamentos')
             .insert([{
                 nome: dados.nome,
