@@ -1753,3 +1753,19 @@ document.addEventListener('keydown', (e) => {
         fecharModal();
     }
 });
+
+// Função isolada para manter o Supabase ativo (keep-alive)
+async function pingSupabase() { 
+  try { 
+    await supabaseClient 
+      .from('agendamentos') 
+      .select('id') 
+      .limit(1) 
+  } catch (e) { 
+    console.warn('Ping Supabase falhou:', e.message) 
+  } 
+} 
+
+// Executa uma vez ao carregar e depois a cada 5 minutos
+pingSupabase();
+setInterval(pingSupabase, 5 * 60 * 1000);
