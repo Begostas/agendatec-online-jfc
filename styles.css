@@ -704,6 +704,10 @@ select option {
 }
 
 .agendamento-info {
+    background: #cfe8ff !important;
+}
+
+.agendamento-sala-info {
     background: #e60000 !important;
 }
 
