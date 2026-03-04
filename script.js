@@ -1634,6 +1634,10 @@ async function processarEnvioFormulario(dados) {
             throw new Error('Por favor, selecione pelo menos um equipamento.');
         }
 
+        if (dados.equipamentos.includes('Sala de Informática') && dados.mensagem.trim().length < 9) {
+            throw new Error('Para agendar a Sala de Informática, é necessário informar o conteúdo didático aplicado aos alunos (mínimo de 9 caracteres).');
+        }
+
         const lousasSelecionadas = dados.equipamentos.filter(eq => eq.includes('lousa'));
         if (lousasSelecionadas.length > 1) {
             throw new Error('Você pode selecionar apenas uma lousa por agendamento.');
@@ -1651,6 +1655,18 @@ async function processarEnvioFormulario(dados) {
 
         if (toLocalDate(dataAgendamento) < hojeLocal) {
             throw new Error('Não é possível agendar para datas passadas.');
+        }
+
+        if (dados.equipamentos.includes('Sala de Informática')) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
+            const dataSelecionada = new Date(dataAgendamento);
+            dataSelecionada.setHours(0, 0, 0, 0);
+
+            if (dataSelecionada.getTime() === hoje.getTime()) {
+                throw new Error('A Sala de Informática deve ser agendada com pelo menos 1 dia de antecedência. Por favor, selecione uma data a partir de amanhã.');
+            }
         }
 
         const diaSemana = toLocalDate(dataAgendamento).getDay();
