@@ -14,6 +14,18 @@ let cacheHolidays = {
     lastFetch: null
 };
 
+// Função isolada para carregar feriados nacionais
+async function carregarFeriados(ano) {
+    try {
+        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${ano}/BR`)
+        const dados = await res.json()
+        return dados
+    } catch (e) {
+        console.warn('Erro ao carregar feriados:', e)
+        return []
+    }
+}
+
 // Variáveis globais
 let agendamentos = [];
 let ultimaAtualizacaoSemana = formatDateForAPI(new Date());
@@ -81,13 +93,7 @@ async function buscarFeriados(ano) {
     
     try {
         console.log('🌐 Buscando feriados online para', ano);
-        const response = await fetch(`${HOLIDAYS_API_URL}?api_key=${HOLIDAYS_API_KEY}&country=BR&year=${ano}`);
-        
-        if (!response.ok) {
-            throw new Error(`Erro na API: ${response.status}`);
-        }
-        
-        const holidays = await response.json();
+        const holidays = await carregarFeriados(ano);
         
         // Atualizar cache
         cacheHolidays = {
@@ -684,7 +690,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
         const feriado = isHoliday(diasSemana[index], feriados);
         
         if (feriado) {
-            th.innerHTML = `${nomesDias[index]} (${dataFormatada})<br><small class="holiday-indicator">🎉 ${feriado.name}</small>`;
+            th.innerHTML = `${nomesDias[index]} (${dataFormatada})<br><small class="holiday-indicator">🎉 Feriado: ${feriado.name || feriado.localName}</small>`;
             th.classList.add('holiday-header');
         } else {
             th.textContent = `${nomesDias[index]} (${dataFormatada})`;
@@ -757,6 +763,24 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     if (ag.mensagem && ag.mensagem.trim() !== '') {
                         agendamentoDiv.setAttribute('data-mensagem', ag.mensagem);
                         setupTooltip(agendamentoDiv, ag.mensagem);
+                        
+                        // Permitir clique para abrir primeiro link se houver
+                        const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+                        const match = ag.mensagem.match(urlRegex);
+                        if (match) {
+                            let firstUrl = match[0];
+                            if (!firstUrl.startsWith('http')) {
+                                firstUrl = 'http://' + firstUrl;
+                            }
+                            agendamentoDiv.title = `Clique para abrir: ${firstUrl}`;
+                            agendamentoDiv.style.cursor = 'pointer';
+                            agendamentoDiv.addEventListener('click', (e) => {
+                                // Se o clique foi no próprio link dentro do tooltip, não faz nada (o link já abre)
+                                if (e.target.tagName !== 'A') {
+                                    window.open(firstUrl, '_blank');
+                                }
+                            });
+                        }
                     }
                     
                     const nomeDiv = document.createElement('div');
@@ -1233,7 +1257,18 @@ function showTooltip(element, message, event) {
     
     // Cria novo tooltip
     currentTooltip = createTooltip();
-    currentTooltip.textContent = message;
+    
+    // Converter URLs em links clicáveis no tooltip
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+    const messageWithLinks = message.replace(urlRegex, (url) => {
+        let href = url;
+        if (!url.startsWith('http')) {
+            href = 'http://' + url;
+        }
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #4db8ff; text-decoration: underline;">${url}</a>`;
+    });
+    
+    currentTooltip.innerHTML = messageWithLinks;
     
     // Posiciona o tooltip próximo ao cursor
     positionTooltip(currentTooltip, event);
@@ -1686,6 +1721,13 @@ async function processarEnvioFormulario(dados) {
 
         if (horaInicioMinutos < 420 || horaFimMinutos > 1080) {
             throw new Error('Os agendamentos devem estar entre 07:00 e 18:00.');
+        }
+
+        // Bloquear agendamento em feriados nacionais
+        const anoData = parseDateBR(dados.data).getFullYear();
+        const feriados = await buscarFeriados(anoData);
+        if (isHoliday(dados.data, feriados)) {
+            throw new Error('Não é possível realizar agendamentos em feriados nacionais. Por favor, selecione outra data.');
         }
 
         // Verificar conflitos

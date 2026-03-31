@@ -185,6 +185,66 @@
             return new Date(date); // o navegador já converte automaticamente para o fuso local
         }
 
+        // Cache para feriados (evitar múltiplas chamadas)
+        let cacheHolidays = {
+            data: null,
+            year: null,
+            lastFetch: null
+        };
+
+        // Função isolada para carregar feriados nacionais
+        async function carregarFeriados(ano) {
+            try {
+                const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${ano}/BR`)
+                const dados = await res.json()
+                return dados
+            } catch (e) {
+                console.warn('Erro ao carregar feriados:', e)
+                return []
+            }
+        }
+
+        // Função para buscar feriados da API
+        async function buscarFeriados(ano) {
+            // Verificar cache primeiro
+            const agora = Date.now();
+            const umDiaEmMs = 24 * 60 * 60 * 1000;
+            
+            if (cacheHolidays.data && 
+                cacheHolidays.year === ano && 
+                cacheHolidays.lastFetch && 
+                (agora - cacheHolidays.lastFetch) < umDiaEmMs) {
+                console.log('📅 Usando feriados do cache para', ano);
+                return cacheHolidays.data;
+            }
+            
+            try {
+                console.log('🌐 Buscando feriados online para', ano);
+                const holidays = await carregarFeriados(ano);
+                
+                // Atualizar cache
+                cacheHolidays = {
+                    data: holidays,
+                    year: ano,
+                    lastFetch: agora
+                };
+                
+                console.log(`✅ ${holidays.length} feriados carregados para ${ano}`);
+                return holidays;
+                
+            } catch (error) {
+                console.warn('⚠️ Erro ao buscar feriados:', error.message);
+                return [];
+            }
+        }
+
+        // Função para verificar se uma data é feriado
+        function isHoliday(dateString, holidays) {
+            if (!holidays || holidays.length === 0) return null;
+            const holiday = holidays.find(h => h.date === dateString);
+            return holiday || null;
+        }
+
         // Elementos DOM
         const weekSelector = document.getElementById('week-selector');
         const tabelaBody = document.querySelector('#tabela-semanal-body');
@@ -285,16 +345,27 @@
         }
 
         // Função para preencher a tabela semanal
-        function preencherTabelaSemanal(agendamentos, inicioSemana) {
+        async function preencherTabelaSemanal(agendamentos, inicioSemana) {
             tabelaBody.innerHTML = '';
 
-            // Atualizar cabeçalhos com as datas
+            // Buscar feriados para o ano atual
+            const anoAtual = inicioSemana.getFullYear();
+            const feriados = await buscarFeriados(anoAtual);
+
+            // Atualizar cabeçalhos com as datas e feriados
             const cabecalhos = document.querySelectorAll('.tabela-semanal .dia-col');
             for (let i = 0; i < 5; i++) {
                 const data = new Date(inicioSemana);
                 data.setDate(inicioSemana.getDate() + i);
                 const diaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'][i];
-                cabecalhos[i].textContent = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})`;
+                const dataISO = formatDateISO(data);
+                const feriado = isHoliday(dataISO, feriados);
+
+                if (feriado) {
+                    cabecalhos[i].innerHTML = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})<br><small style="color: #ff9800; font-size: 0.7em;">🎉 Feriado: ${feriado.name || feriado.localName}</small>`;
+                } else {
+                    cabecalhos[i].textContent = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})`;
+                }
             }
 
             // Criar linhas para cada horário
@@ -315,6 +386,19 @@
                     const dataString = formatDateISO(dataAtual);
                     // Anexar data ISO local à célula para facilitar auditoria/teste
                     celula.setAttribute('data-date', dataString);
+
+                    // Verificar se é feriado
+                    const feriado = isHoliday(dataString, feriados);
+                    if (feriado) {
+                        celula.style.backgroundColor = 'rgba(255, 152, 0, 0.05)';
+                        const feriadoLabel = document.createElement('div');
+                        feriadoLabel.style.color = '#ff9800';
+                        feriadoLabel.style.fontSize = '0.75rem';
+                        feriadoLabel.style.textAlign = 'center';
+                        feriadoLabel.style.padding = '10px';
+                        feriadoLabel.textContent = 'Feriado';
+                        celula.appendChild(feriadoLabel);
+                    }
 
                     // Filtrar agendamentos para este dia e horário
                     const agendamentosDoDia = agendamentos.filter(ag => {
@@ -355,6 +439,24 @@
                         
                         if (agendamento.mensagem && agendamento.mensagem.trim() !== '') {
                             setupTooltip(item, agendamento.mensagem);
+
+                            // Permitir clique para abrir primeiro link se houver
+                            const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+                            const match = agendamento.mensagem.match(urlRegex);
+                            if (match) {
+                                let firstUrl = match[0];
+                                if (!firstUrl.startsWith('http')) {
+                                    firstUrl = 'http://' + firstUrl;
+                                }
+                                item.title = `Clique para abrir: ${firstUrl}`;
+                                item.style.cursor = 'pointer';
+                                item.addEventListener('click', (e) => {
+                                    // Se o clique foi no próprio link dentro do tooltip, não faz nada
+                                    if (e.target.tagName !== 'A') {
+                                        window.open(firstUrl, '_blank');
+                                    }
+                                });
+                            }
                         }
                         
                         celula.appendChild(item);
@@ -425,7 +527,18 @@
             
             // Cria novo tooltip
             currentTooltip = createTooltip();
-            currentTooltip.textContent = message;
+            
+            // Converter URLs em links clicáveis no tooltip
+            const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+            const messageWithLinks = message.replace(urlRegex, (url) => {
+                let href = url;
+                if (!url.startsWith('http')) {
+                    href = 'http://' + url;
+                }
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #4db8ff; text-decoration: underline;">${url}</a>`;
+            });
+            
+            currentTooltip.innerHTML = messageWithLinks;
             
             // Posiciona o tooltip próximo ao cursor
             positionTooltip(currentTooltip, event);
