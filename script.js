@@ -30,6 +30,21 @@ const traducoesFeriados = {
   "Christmas Day": "Natal" 
 };
 
+// Lista de feriados locais (nacional recente, estadual e municipal)
+const feriadosLocais = [ 
+  { data: "11-20", nome: "Dia da Consciência Negra" }, 
+  { data: "10-11", nome: "Divisão do Estado de Mato Grosso do Sul" }, 
+  { data: "06-15", nome: "Aniversário de Três Lagoas" } 
+];
+
+// Função isolada para gerar feriados locais para o ano atual
+function gerarFeriadosLocais(ano) { 
+  return feriadosLocais.map(f => ({ 
+    date: `${ano}-${f.data}`, 
+    name: f.nome 
+  })); 
+}
+
 // Função isolada para traduzir o nome do feriado
 function traduzirFeriado(nome) { 
   return traducoesFeriados[nome] || nome; 
@@ -140,7 +155,16 @@ async function buscarFeriados(ano) {
     
     try {
         console.log('🌐 Buscando feriados online para', ano);
-        const holidays = await carregarFeriados(ano);
+        const feriadosAPI = await carregarFeriados(ano);
+        const feriadosExtras = gerarFeriadosLocais(ano);
+        
+        // Unificar feriados da API com os feriados locais (evitando duplicatas se houver)
+        const holidays = [...feriadosAPI];
+        feriadosExtras.forEach(extra => {
+            if (!holidays.some(h => h.date === extra.date)) {
+                holidays.push(extra);
+            }
+        });
         
         // Atualizar cache
         cacheHolidays = {
@@ -149,7 +173,7 @@ async function buscarFeriados(ano) {
             lastFetch: agora
         };
         
-        console.log(`✅ ${holidays.length} feriados carregados para ${ano}`);
+        console.log(`✅ ${holidays.length} feriados carregados para ${ano} (incluindo feriados locais)`);
         return holidays;
         
     } catch (error) {
