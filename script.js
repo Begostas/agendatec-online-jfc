@@ -14,6 +14,27 @@ let cacheHolidays = {
     lastFetch: null
 };
 
+// Dicionário de tradução de feriados
+const traducoesFeriados = { 
+  "New Year's Day": "Confraternização Universal", 
+  "Carnival": "Carnaval", 
+  "Good Friday": "Sexta-feira Santa", 
+  "Easter Sunday": "Domingo de Páscoa", 
+  "Tiradentes Day": "Tiradentes", 
+  "Labour Day": "Dia do Trabalho", 
+  "Corpus Christi": "Corpus Christi", 
+  "Independence Day": "Independência do Brasil", 
+  "Our Lady of Aparecida": "Nossa Senhora Aparecida", 
+  "All Souls' Day": "Finados", 
+  "Republic Proclamation Day": "Proclamação da República", 
+  "Christmas Day": "Natal" 
+};
+
+// Função isolada para traduzir o nome do feriado
+function traduzirFeriado(nome) { 
+  return traducoesFeriados[nome] || nome; 
+}
+
 // Função isolada para carregar feriados nacionais
 async function carregarFeriados(ano) {
     try {
@@ -690,7 +711,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
         const feriado = isHoliday(diasSemana[index], feriados);
         
         if (feriado) {
-            th.innerHTML = `${nomesDias[index]} (${dataFormatada})<br><small class="holiday-indicator">🎉 Feriado: ${feriado.name || feriado.localName}</small>`;
+            th.innerHTML = `${nomesDias[index]} (${dataFormatada})<br><small class="holiday-indicator">🎉 Feriado: ${traduzirFeriado(feriado.name)}</small>`;
             th.classList.add('holiday-header');
         } else {
             th.textContent = `${nomesDias[index]} (${dataFormatada})`;

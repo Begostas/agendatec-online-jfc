@@ -204,6 +204,27 @@
             }
         }
 
+        // Dicionário de tradução de feriados
+        const traducoesFeriados = { 
+          "New Year's Day": "Confraternização Universal", 
+          "Carnival": "Carnaval", 
+          "Good Friday": "Sexta-feira Santa", 
+          "Easter Sunday": "Domingo de Páscoa", 
+          "Tiradentes Day": "Tiradentes", 
+          "Labour Day": "Dia do Trabalho", 
+          "Corpus Christi": "Corpus Christi", 
+          "Independence Day": "Independência do Brasil", 
+          "Our Lady of Aparecida": "Nossa Senhora Aparecida", 
+          "All Souls' Day": "Finados", 
+          "Republic Proclamation Day": "Proclamação da República", 
+          "Christmas Day": "Natal" 
+        };
+
+        // Função isolada para traduzir o nome do feriado
+        function traduzirFeriado(nome) { 
+          return traducoesFeriados[nome] || nome; 
+        }
+
         // Função para buscar feriados da API
         async function buscarFeriados(ano) {
             // Verificar cache primeiro
@@ -362,7 +383,7 @@
                 const feriado = isHoliday(dataISO, feriados);
 
                 if (feriado) {
-                    cabecalhos[i].innerHTML = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})<br><small style="color: #ff9800; font-size: 0.7em;">🎉 Feriado: ${feriado.name || feriado.localName}</small>`;
+                    cabecalhos[i].innerHTML = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})<br><small style="color: #ff9800; font-size: 0.7em;">🎉 Feriado: ${traduzirFeriado(feriado.name)}</small>`;
                 } else {
                     cabecalhos[i].textContent = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})`;
                 }
