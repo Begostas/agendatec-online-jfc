@@ -35,6 +35,32 @@ function traduzirFeriado(nome) {
   return traducoesFeriados[nome] || nome; 
 }
 
+// Função isolada para gerar pontos facultativos baseados nos feriados
+function gerarPontosFacultativos(feriados) { 
+  const pontos = []; 
+
+  feriados.forEach(f => { 
+    const data = new Date(f.date + 'T00:00:00'); 
+    const diaSemana = data.getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado 
+
+    // Terça-feira (2) → ponto na segunda
+    if (diaSemana === 2) { 
+      const segunda = new Date(data); 
+      segunda.setDate(data.getDate() - 1); 
+      pontos.push(formatDateISO(segunda)); 
+    } 
+
+    // Quinta-feira (4) → ponto na sexta
+    if (diaSemana === 4) { 
+      const sexta = new Date(data); 
+      sexta.setDate(data.getDate() + 1); 
+      pontos.push(formatDateISO(sexta)); 
+    } 
+  }); 
+
+  return pontos; 
+}
+
 // Função isolada para carregar feriados nacionais
 async function carregarFeriados(ano) {
     try {
@@ -700,18 +726,23 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
         console.log(`${nomesDias[i]}: ${formatDateDisplay(diaISO)}`);
     }
     
-    // Buscar feriados para o ano atual
+    // Buscar feriados para o ano atual e gerar pontos facultativos
     const anoAtual = segundaFeira.getFullYear();
     const feriados = await buscarFeriados(anoAtual);
+    const pontosFacultativos = gerarPontosFacultativos(feriados);
     
-    // Atualizar cabeçalho da tabela com as datas e indicação de feriados
+    // Atualizar cabeçalho da tabela com as datas e indicação de feriados/pontos facultativos
     const cabecalhos = document.querySelectorAll('.tabela-semanal .dia-col');
     cabecalhos.forEach((th, index) => {
         const dataFormatada = formatDateDisplay(diasSemana[index]).substring(0, 5); // DD/MM
         const feriado = isHoliday(diasSemana[index], feriados);
+        const ePontoFacultativo = pontosFacultativos.includes(diasSemana[index]);
         
         if (feriado) {
             th.innerHTML = `${nomesDias[index]} (${dataFormatada})<br><small class="holiday-indicator">🎉 Feriado: ${traduzirFeriado(feriado.name)}</small>`;
+            th.classList.add('holiday-header');
+        } else if (ePontoFacultativo) {
+            th.innerHTML = `${nomesDias[index]} (${dataFormatada})<br><small class="holiday-indicator">📅 Ponto Facultativo</small>`;
             th.classList.add('holiday-header');
         } else {
             th.textContent = `${nomesDias[index]} (${dataFormatada})`;
@@ -768,11 +799,16 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
         diasSemana.forEach(data => {
             const td = document.createElement('td');
             
-            // Verificar se é feriado
+            // Verificar se é feriado ou ponto facultativo
             const feriado = isHoliday(data, feriados);
+            const ePontoFacultativo = pontosFacultativos.includes(data);
+            
             if (feriado) {
                 td.classList.add('holiday-cell');
                 td.title = `Feriado: ${feriado.name}`;
+            } else if (ePontoFacultativo) {
+                td.classList.add('holiday-cell');
+                td.title = `Ponto Facultativo`;
             }
             
             if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
@@ -831,7 +867,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     td.appendChild(agendamentoDiv);
                 });
             } else {
-                td.className = feriado ? 'dia-vazio holiday-cell' : 'dia-vazio';
+                td.className = (feriado || ePontoFacultativo) ? 'dia-vazio holiday-cell' : 'dia-vazio';
             }
             
             tr.appendChild(td);
@@ -1744,11 +1780,17 @@ async function processarEnvioFormulario(dados) {
             throw new Error('Os agendamentos devem estar entre 07:00 e 18:00.');
         }
 
-        // Bloquear agendamento em feriados nacionais
+        // Bloquear agendamento em feriados nacionais ou pontos facultativos
         const anoData = parseDateBR(dados.data).getFullYear();
         const feriados = await buscarFeriados(anoData);
+        const pontosFacultativos = gerarPontosFacultativos(feriados);
+        
         if (isHoliday(dados.data, feriados)) {
             throw new Error('Não é possível realizar agendamentos em feriados nacionais. Por favor, selecione outra data.');
+        }
+        
+        if (pontosFacultativos.includes(dados.data)) {
+            throw new Error('Não é possível realizar agendamentos em ponto facultativo. Por favor, selecione outra data.');
         }
 
         // Verificar conflitos

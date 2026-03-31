@@ -225,6 +225,32 @@
           return traducoesFeriados[nome] || nome; 
         }
 
+        // Função isolada para gerar pontos facultativos baseados nos feriados
+        function gerarPontosFacultativos(feriados) { 
+          const pontos = []; 
+
+          feriados.forEach(f => { 
+            const data = new Date(f.date + 'T00:00:00'); 
+            const diaSemana = data.getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado 
+
+            // Terça-feira (2) → ponto na segunda
+            if (diaSemana === 2) { 
+              const segunda = new Date(data); 
+              segunda.setDate(data.getDate() - 1); 
+              pontos.push(formatDateISO(segunda)); 
+            } 
+
+            // Quinta-feira (4) → ponto na sexta
+            if (diaSemana === 4) { 
+              const sexta = new Date(data); 
+              sexta.setDate(data.getDate() + 1); 
+              pontos.push(formatDateISO(sexta)); 
+            } 
+          }); 
+
+          return pontos; 
+        }
+
         // Função para buscar feriados da API
         async function buscarFeriados(ano) {
             // Verificar cache primeiro
@@ -369,11 +395,12 @@
         async function preencherTabelaSemanal(agendamentos, inicioSemana) {
             tabelaBody.innerHTML = '';
 
-            // Buscar feriados para o ano atual
+            // Buscar feriados para o ano atual e gerar pontos facultativos
             const anoAtual = inicioSemana.getFullYear();
             const feriados = await buscarFeriados(anoAtual);
+            const pontosFacultativos = gerarPontosFacultativos(feriados);
 
-            // Atualizar cabeçalhos com as datas e feriados
+            // Atualizar cabeçalhos com as datas e feriados/pontos facultativos
             const cabecalhos = document.querySelectorAll('.tabela-semanal .dia-col');
             for (let i = 0; i < 5; i++) {
                 const data = new Date(inicioSemana);
@@ -381,9 +408,12 @@
                 const diaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'][i];
                 const dataISO = formatDateISO(data);
                 const feriado = isHoliday(dataISO, feriados);
+                const ePontoFacultativo = pontosFacultativos.includes(dataISO);
 
                 if (feriado) {
                     cabecalhos[i].innerHTML = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})<br><small style="color: #ff9800; font-size: 0.7em;">🎉 Feriado: ${traduzirFeriado(feriado.name)}</small>`;
+                } else if (ePontoFacultativo) {
+                    cabecalhos[i].innerHTML = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})<br><small style="color: #ff9800; font-size: 0.7em;">📅 Ponto Facultativo</small>`;
                 } else {
                     cabecalhos[i].textContent = `${diaSemana} (${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')})`;
                 }
@@ -408,16 +438,18 @@
                     // Anexar data ISO local à célula para facilitar auditoria/teste
                     celula.setAttribute('data-date', dataString);
 
-                    // Verificar se é feriado
+                    // Verificar se é feriado ou ponto facultativo
                     const feriado = isHoliday(dataString, feriados);
-                    if (feriado) {
+                    const ePontoFacultativo = pontosFacultativos.includes(dataString);
+                    
+                    if (feriado || ePontoFacultativo) {
                         celula.style.backgroundColor = 'rgba(255, 152, 0, 0.05)';
                         const feriadoLabel = document.createElement('div');
                         feriadoLabel.style.color = '#ff9800';
                         feriadoLabel.style.fontSize = '0.75rem';
                         feriadoLabel.style.textAlign = 'center';
                         feriadoLabel.style.padding = '10px';
-                        feriadoLabel.textContent = 'Feriado';
+                        feriadoLabel.textContent = feriado ? 'Feriado' : 'Ponto Facultativo';
                         celula.appendChild(feriadoLabel);
                     }
 
