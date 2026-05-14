@@ -778,6 +778,19 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
         }
     });
 
+    // Indexar os horários de início por dia para montar cada célula sem duplicar finais compartilhados.
+    const iniciosPorData = {};
+    agendamentos.forEach(ag => {
+        const data = ag.data;
+        const horaInicio = ag.horaInicio.substring(0, 5);
+
+        if (!iniciosPorData[data]) {
+            iniciosPorData[data] = new Set();
+        }
+
+        iniciosPorData[data].add(horaInicio);
+    });
+
     // Organizar agendamentos por data e horário (expandindo por todo o período)
     const agendamentosPorDiaHora = {};
     agendamentos.forEach(ag => {
@@ -796,8 +809,17 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             const [h, m] = horario.split(':').map(Number);
             const horarioMinutos = h * 60 + m;
             
-            // Se o horário está dentro do período agendado
-            if (deveRenderizarNaCelulaVisual(ag, agendamentos, horarioMinutos, inicioMinutos, fimMinutos)) {
+            const compartilhaCelulaFinalComNovoInicio =
+                horario === horaFim &&
+                iniciosPorData[data] &&
+                iniciosPorData[data].has(horaFim);
+
+            // A célula final continua existindo na grade, mas não recebe o agendamento anterior
+            // quando outro já começa exatamente naquele horário.
+            if (
+                estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos) &&
+                !compartilhaCelulaFinalComNovoInicio
+            ) {
                 if (!agendamentosPorDiaHora[data]) {
                     agendamentosPorDiaHora[data] = {};
                 }
@@ -918,26 +940,6 @@ function horarioParaMinutos(horario) {
 // A grade visual inclui a célula do horário final para exibir o bloco completo.
 function estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos) {
     return horarioMinutos >= inicioMinutos && horarioMinutos <= fimMinutos;
-}
-
-// A célula final continua visível, mas o balão final é omitido quando outra aula começa nela.
-function deveRenderizarNaCelulaVisual(agendamento, agendamentos, horarioMinutos, inicioMinutos, fimMinutos) {
-    if (!estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos)) {
-        return false;
-    }
-
-    if (horarioMinutos !== fimMinutos) {
-        return true;
-    }
-
-    const dataAgendamento = agendamento.data;
-    const horarioFinal = agendamento.horaFim.substring(0, 5);
-
-    return !agendamentos.some(outroAgendamento =>
-        outroAgendamento !== agendamento &&
-        outroAgendamento.data === dataAgendamento &&
-        outroAgendamento.horaInicio.substring(0, 5) === horarioFinal
-    );
 }
 
 // A lógica de conflito usa intervalo [inicio, fim), deixando o horário final livre.
