@@ -778,19 +778,6 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
         }
     });
 
-    // Indexar os horários de início por dia para montar cada célula sem duplicar finais compartilhados.
-    const iniciosPorData = {};
-    agendamentos.forEach(ag => {
-        const data = ag.data;
-        const horaInicio = ag.horaInicio.substring(0, 5);
-
-        if (!iniciosPorData[data]) {
-            iniciosPorData[data] = new Set();
-        }
-
-        iniciosPorData[data].add(horaInicio);
-    });
-
     // Organizar agendamentos por data e horário (expandindo por todo o período)
     const agendamentosPorDiaHora = {};
     agendamentos.forEach(ag => {
@@ -809,16 +796,13 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             const [h, m] = horario.split(':').map(Number);
             const horarioMinutos = h * 60 + m;
             
-            const compartilhaCelulaFinalComNovoInicio =
+            const compartilhaCelulaFinalMesmoRecurso =
                 horario === horaFim &&
-                iniciosPorData[data] &&
-                iniciosPorData[data].has(horaFim);
+                existeNovoInicioMesmoRecursoNaCelula(ag, agendamentos, data, horaFim);
 
-            // A célula final continua existindo na grade, mas não recebe o agendamento anterior
-            // quando outro já começa exatamente naquele horário.
             if (
                 estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos) &&
-                !compartilhaCelulaFinalComNovoInicio
+                !compartilhaCelulaFinalMesmoRecurso
             ) {
                 if (!agendamentosPorDiaHora[data]) {
                     agendamentosPorDiaHora[data] = {};
@@ -863,50 +847,45 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             
             if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
                 agendamentosPorDiaHora[data][horario].forEach(ag => {
-                    const ehInicioDaCelula = ag.horaInicio.substring(0, 5) === horario;
                     const agendamentoDiv = document.createElement('div');
                     agendamentoDiv.className = 'agendamento-item agendamento-box';
 
                     aplicarClassesVisuaisAgendamento(agendamentoDiv, ag.equipamentos);
-
-                    if (ehInicioDaCelula) {
-                        // Adicionar tooltip com mensagem se existir somente no bloco principal.
-                        if (ag.mensagem && ag.mensagem.trim() !== '') {
-                            agendamentoDiv.setAttribute('data-mensagem', ag.mensagem);
-                            setupTooltip(agendamentoDiv, ag.mensagem);
-                            
-                            // Permitir clique para abrir primeiro link se houver
-                            const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
-                            const match = ag.mensagem.match(urlRegex);
-                            if (match) {
-                                let firstUrl = match[0];
-                                if (!firstUrl.startsWith('http')) {
-                                    firstUrl = 'http://' + firstUrl;
-                                }
-                                agendamentoDiv.title = `Clique para abrir: ${firstUrl}`;
-                                agendamentoDiv.style.cursor = 'pointer';
-                                agendamentoDiv.addEventListener('click', (e) => {
-                                    // Se o clique foi no próprio link dentro do tooltip, não faz nada (o link já abre)
-                                    if (e.target.tagName !== 'A') {
-                                        window.open(firstUrl, '_blank');
-                                    }
-                                });
+                    
+                    // Adicionar tooltip com mensagem se existir
+                    if (ag.mensagem && ag.mensagem.trim() !== '') {
+                        agendamentoDiv.setAttribute('data-mensagem', ag.mensagem);
+                        setupTooltip(agendamentoDiv, ag.mensagem);
+                        
+                        // Permitir clique para abrir primeiro link se houver
+                        const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+                        const match = ag.mensagem.match(urlRegex);
+                        if (match) {
+                            let firstUrl = match[0];
+                            if (!firstUrl.startsWith('http')) {
+                                firstUrl = 'http://' + firstUrl;
                             }
+                            agendamentoDiv.title = `Clique para abrir: ${firstUrl}`;
+                            agendamentoDiv.style.cursor = 'pointer';
+                            agendamentoDiv.addEventListener('click', (e) => {
+                                // Se o clique foi no próprio link dentro do tooltip, não faz nada (o link já abre)
+                                if (e.target.tagName !== 'A') {
+                                    window.open(firstUrl, '_blank');
+                                }
+                            });
                         }
-                        
-                        const nomeDiv = document.createElement('div');
-                        nomeDiv.className = 'agendamento-nome';
-                        nomeDiv.textContent = `${ag.nome} - ${ag.turma}`;
-                        
-                        const equipamentoDiv = document.createElement('div');
-                        equipamentoDiv.className = 'agendamento-equipamento';
-                        equipamentoDiv.textContent = ag.equipamentos.join(', ');
-
-                        agendamentoDiv.appendChild(nomeDiv);
-                        agendamentoDiv.appendChild(equipamentoDiv);
-                    } else {
-                        configurarBlocoContinuacao(agendamentoDiv, ag);
                     }
+
+                    const nomeDiv = document.createElement('div');
+                    nomeDiv.className = 'agendamento-nome';
+                    nomeDiv.textContent = `${ag.nome} - ${ag.turma}`;
+                    
+                    const equipamentoDiv = document.createElement('div');
+                    equipamentoDiv.className = 'agendamento-equipamento';
+                    equipamentoDiv.textContent = ag.equipamentos.join(', ');
+
+                    agendamentoDiv.appendChild(nomeDiv);
+                    agendamentoDiv.appendChild(equipamentoDiv);
 
                     td.appendChild(agendamentoDiv);
                 });
@@ -954,18 +933,21 @@ function aplicarClassesVisuaisAgendamento(elemento, equipamentos) {
     }
 }
 
-function configurarBlocoContinuacao(elemento, agendamento) {
-    elemento.textContent = 'Continuacao';
-    elemento.setAttribute('aria-label', `Continuacao de ${agendamento.nome} - ${agendamento.turma}`);
-    elemento.style.padding = '4px 8px';
-    elemento.style.minHeight = '18px';
-    elemento.style.display = 'flex';
-    elemento.style.alignItems = 'center';
-    elemento.style.justifyContent = 'center';
-    elemento.style.fontSize = '0.72rem';
-    elemento.style.fontWeight = '600';
-    elemento.style.letterSpacing = '0.03em';
-    elemento.style.opacity = '0.92';
+function existeNovoInicioMesmoRecursoNaCelula(agendamentoAtual, agendamentos, data, horarioCompartilhado) {
+    const equipamentosAtuais = Array.isArray(agendamentoAtual.equipamentos) ? agendamentoAtual.equipamentos : [];
+
+    return agendamentos.some(outroAgendamento => {
+        if (outroAgendamento === agendamentoAtual) {
+            return false;
+        }
+
+        if (outroAgendamento.data !== data || outroAgendamento.horaInicio.substring(0, 5) !== horarioCompartilhado) {
+            return false;
+        }
+
+        const equipamentosDoOutro = Array.isArray(outroAgendamento.equipamentos) ? outroAgendamento.equipamentos : [];
+        return equipamentosAtuais.some(equipamento => equipamentosDoOutro.includes(equipamento));
+    });
 }
 
 // A lógica de conflito usa intervalo [inicio, fim), deixando o horário final livre.
