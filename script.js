@@ -880,10 +880,13 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     agendamentoDiv.appendChild(equipamentoDiv);
                     // Aplicar classes visuais no elemento interno conforme equipamentos
                     const eqs = Array.isArray(ag.equipamentos) ? ag.equipamentos : [];
-                    if (eqs.some(e => e === 'Sala de Informática')) {
+                    const temSalaInfo = eqs.some(e => e === 'Sala de Informática');
+                    const temLousaInfo = eqs.some(e => e === 'Lousa Informática');
+                    if (temSalaInfo && temLousaInfo) {
+                        agendamentoDiv.classList.add('agendamento-info-completo');
+                    } else if (temSalaInfo) {
                         agendamentoDiv.classList.add('agendamento-sala-info');
-                    }
-                    if (eqs.some(e => e === 'Lousa Informática')) {
+                    } else if (temLousaInfo) {
                         agendamentoDiv.classList.add('agendamento-info');
                     }
                     if (eqs.some(e => e === 'Anfiteatro' || e === 'Lousa Anfiteatro')) {

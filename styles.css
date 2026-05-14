@@ -712,6 +712,11 @@ select option {
     color: #f8f8f8 !important;
 }
 
+.agendamento-info-completo {
+    background: #8000cc !important;
+    color: #f8f8f8 !important;
+}
+
 .agendamento-anf {
     background: #ffc8aa !important;
 }
