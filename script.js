@@ -708,7 +708,7 @@ async function carregarAgendamentos() {
 
 async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
     // Usar os horários atualizados - removendo horários :30 e alterando 07:00->07:10, removendo 13:10
-    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
+    const horarios = ['07:10', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
     // Calcular dinamicamente a semana baseada no índice selecionado
     const hoje = new Date();
@@ -797,7 +797,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             const horarioMinutos = h * 60 + m;
             
             // Se o horário está dentro do período agendado
-            if (horarioMinutos >= inicioMinutos && horarioMinutos < fimMinutos) {
+            if (horarioMinutos >= inicioMinutos && horarioMinutos <= fimMinutos) {
                 if (!agendamentosPorDiaHora[data]) {
                     agendamentosPorDiaHora[data] = {};
                 }
