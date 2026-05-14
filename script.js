@@ -797,7 +797,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             const horarioMinutos = h * 60 + m;
             
             // Se o horário está dentro do período agendado
-            if (estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos)) {
+            if (deveRenderizarNaCelulaVisual(ag, agendamentos, horarioMinutos, inicioMinutos, fimMinutos)) {
                 if (!agendamentosPorDiaHora[data]) {
                     agendamentosPorDiaHora[data] = {};
                 }
@@ -840,12 +840,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             }
             
             if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
-                const agendamentosDaCelula = priorizarAgendamentosDoInicio(
-                    agendamentosPorDiaHora[data][horario],
-                    horario
-                );
-
-                agendamentosDaCelula.forEach(ag => {
+                agendamentosPorDiaHora[data][horario].forEach(ag => {
                     const agendamentoDiv = document.createElement('div');
                     agendamentoDiv.className = 'agendamento-item agendamento-box';
                     
@@ -925,16 +920,24 @@ function estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos) {
     return horarioMinutos >= inicioMinutos && horarioMinutos <= fimMinutos;
 }
 
-// Quando uma célula representa ao mesmo tempo o fim de um agendamento e o início de outro,
-// o balão que começa no horário tem prioridade visual.
-function priorizarAgendamentosDoInicio(agendamentos, horario) {
-    const existeInicioNaCelula = agendamentos.some(ag => ag.horaInicio.substring(0, 5) === horario);
-
-    if (!existeInicioNaCelula) {
-        return agendamentos;
+// A célula final continua visível, mas o balão final é omitido quando outra aula começa nela.
+function deveRenderizarNaCelulaVisual(agendamento, agendamentos, horarioMinutos, inicioMinutos, fimMinutos) {
+    if (!estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos)) {
+        return false;
     }
 
-    return agendamentos.filter(ag => ag.horaFim.substring(0, 5) !== horario || ag.horaInicio.substring(0, 5) === horario);
+    if (horarioMinutos !== fimMinutos) {
+        return true;
+    }
+
+    const dataAgendamento = agendamento.data;
+    const horarioFinal = agendamento.horaFim.substring(0, 5);
+
+    return !agendamentos.some(outroAgendamento =>
+        outroAgendamento !== agendamento &&
+        outroAgendamento.data === dataAgendamento &&
+        outroAgendamento.horaInicio.substring(0, 5) === horarioFinal
+    );
 }
 
 // A lógica de conflito usa intervalo [inicio, fim), deixando o horário final livre.
