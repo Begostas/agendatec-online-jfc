@@ -797,7 +797,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             const horarioMinutos = h * 60 + m;
             
             // Se o horário está dentro do período agendado
-            if (horarioMinutos >= inicioMinutos && horarioMinutos <= fimMinutos) {
+            if (estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos)) {
                 if (!agendamentosPorDiaHora[data]) {
                     agendamentosPorDiaHora[data] = {};
                 }
@@ -915,6 +915,16 @@ function horarioParaMinutos(horario) {
     return horas * 60 + minutos;
 }
 
+// A grade visual inclui a célula do horário final para exibir o bloco completo.
+function estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos) {
+    return horarioMinutos >= inicioMinutos && horarioMinutos <= fimMinutos;
+}
+
+// A lógica de conflito usa intervalo [inicio, fim), deixando o horário final livre.
+function temSobreposicaoDeHorarios(inicioMinutos, fimMinutos, outroInicioMinutos, outroFimMinutos) {
+    return inicioMinutos < outroFimMinutos && fimMinutos > outroInicioMinutos;
+}
+
 // Regras de família para espaços fixos e lousas móveis
 const FIXOS = ["Sala de Informática", "Anfiteatro", "Biblioteca"];
 const MOVEIS = ["Lousa Informática", "Lousa Anfiteatro", "Lousa Biblioteca"];
@@ -954,7 +964,12 @@ async function verificarConflito(data, horaInicio, horaFim, equipamentos, turma,
             // Verificar sobreposição de horários
             // Dois intervalos se sobrepõem se: início1 < fim2 E fim1 > início2
             // Agendamentos consecutivos (fim1 = início2 ou início1 = fim2) NÃO são conflito
-            const temSobreposicao = inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos;
+            const temSobreposicao = temSobreposicaoDeHorarios(
+                inicioMinutos,
+                fimMinutos,
+                agInicioMinutos,
+                agFimMinutos
+            );
 
             console.log(`Verificando: Novo(${horaInicio}-${horaFim} = ${inicioMinutos}-${fimMinutos}min) vs Existente(${ag.horaInicio}-${ag.horaFim} = ${agInicioMinutos}-${agFimMinutos}min)`);
             console.log(`Sobreposição: ${temSobreposicao} (${inicioMinutos} < ${agFimMinutos} = ${inicioMinutos < agFimMinutos}) && (${fimMinutos} > ${agInicioMinutos} = ${fimMinutos > agInicioMinutos})`);
