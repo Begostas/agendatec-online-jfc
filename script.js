@@ -1863,7 +1863,19 @@ async function processarEnvioFormulario(dados) {
 
         // Limpar formulário
         form.reset();
-        setupCheckboxItems();
+        
+        // Resetar visualmente as caixas de equipamentos e habilitar todas (evita duplicar listeners)
+        document.querySelectorAll('.checkbox-item').forEach(item => {
+            item.classList.remove('selected');
+            const cb = item.querySelector('input[type="checkbox"]');
+            if (cb) cb.disabled = false;
+        });
+
+        // Resetar o select de hora fim
+        const horaFimSelect = document.getElementById('hora-fim');
+        if (horaFimSelect) {
+            horaFimSelect.innerHTML = '<option value="">Selecione primeiro a hora de início</option>';
+        }
 
         // Recarregar agendamentos
         await carregarAgendamentos();
