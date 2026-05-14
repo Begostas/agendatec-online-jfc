@@ -863,60 +863,51 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             
             if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
                 agendamentosPorDiaHora[data][horario].forEach(ag => {
+                    const ehInicioDaCelula = ag.horaInicio.substring(0, 5) === horario;
                     const agendamentoDiv = document.createElement('div');
                     agendamentoDiv.className = 'agendamento-item agendamento-box';
-                    
-                    // Adicionar tooltip com mensagem se existir
-                    if (ag.mensagem && ag.mensagem.trim() !== '') {
-                        agendamentoDiv.setAttribute('data-mensagem', ag.mensagem);
-                        setupTooltip(agendamentoDiv, ag.mensagem);
-                        
-                        // Permitir clique para abrir primeiro link se houver
-                        const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
-                        const match = ag.mensagem.match(urlRegex);
-                        if (match) {
-                            let firstUrl = match[0];
-                            if (!firstUrl.startsWith('http')) {
-                                firstUrl = 'http://' + firstUrl;
-                            }
-                            agendamentoDiv.title = `Clique para abrir: ${firstUrl}`;
-                            agendamentoDiv.style.cursor = 'pointer';
-                            agendamentoDiv.addEventListener('click', (e) => {
-                                // Se o clique foi no próprio link dentro do tooltip, não faz nada (o link já abre)
-                                if (e.target.tagName !== 'A') {
-                                    window.open(firstUrl, '_blank');
-                                }
-                            });
-                        }
-                    }
-                    
-                    const nomeDiv = document.createElement('div');
-                    nomeDiv.className = 'agendamento-nome';
-                    nomeDiv.textContent = `${ag.nome} - ${ag.turma}`;
-                    
-                    const equipamentoDiv = document.createElement('div');
-                    equipamentoDiv.className = 'agendamento-equipamento';
-                    equipamentoDiv.textContent = ag.equipamentos.join(', ');
 
-                    agendamentoDiv.appendChild(nomeDiv);
-                    agendamentoDiv.appendChild(equipamentoDiv);
-                    // Aplicar classes visuais no elemento interno conforme equipamentos
-                    const eqs = Array.isArray(ag.equipamentos) ? ag.equipamentos : [];
-                    const temSalaInfo = eqs.some(e => e === 'Sala de Informática');
-                    const temLousaInfo = eqs.some(e => e === 'Lousa Informática');
-                    if (temSalaInfo && temLousaInfo) {
-                        agendamentoDiv.classList.add('agendamento-info-completo');
-                    } else if (temSalaInfo) {
-                        agendamentoDiv.classList.add('agendamento-sala-info');
-                    } else if (temLousaInfo) {
-                        agendamentoDiv.classList.add('agendamento-info');
+                    aplicarClassesVisuaisAgendamento(agendamentoDiv, ag.equipamentos);
+
+                    if (ehInicioDaCelula) {
+                        // Adicionar tooltip com mensagem se existir somente no bloco principal.
+                        if (ag.mensagem && ag.mensagem.trim() !== '') {
+                            agendamentoDiv.setAttribute('data-mensagem', ag.mensagem);
+                            setupTooltip(agendamentoDiv, ag.mensagem);
+                            
+                            // Permitir clique para abrir primeiro link se houver
+                            const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+                            const match = ag.mensagem.match(urlRegex);
+                            if (match) {
+                                let firstUrl = match[0];
+                                if (!firstUrl.startsWith('http')) {
+                                    firstUrl = 'http://' + firstUrl;
+                                }
+                                agendamentoDiv.title = `Clique para abrir: ${firstUrl}`;
+                                agendamentoDiv.style.cursor = 'pointer';
+                                agendamentoDiv.addEventListener('click', (e) => {
+                                    // Se o clique foi no próprio link dentro do tooltip, não faz nada (o link já abre)
+                                    if (e.target.tagName !== 'A') {
+                                        window.open(firstUrl, '_blank');
+                                    }
+                                });
+                            }
+                        }
+                        
+                        const nomeDiv = document.createElement('div');
+                        nomeDiv.className = 'agendamento-nome';
+                        nomeDiv.textContent = `${ag.nome} - ${ag.turma}`;
+                        
+                        const equipamentoDiv = document.createElement('div');
+                        equipamentoDiv.className = 'agendamento-equipamento';
+                        equipamentoDiv.textContent = ag.equipamentos.join(', ');
+
+                        agendamentoDiv.appendChild(nomeDiv);
+                        agendamentoDiv.appendChild(equipamentoDiv);
+                    } else {
+                        configurarBlocoContinuacao(agendamentoDiv, ag);
                     }
-                    if (eqs.some(e => e === 'Anfiteatro' || e === 'Lousa Anfiteatro')) {
-                        agendamentoDiv.classList.add('agendamento-anf');
-                    }
-                    if (eqs.some(e => e === 'Biblioteca' || e === 'Lousa Biblioteca')) {
-                        agendamentoDiv.classList.add('agendamento-bib');
-                    }
+
                     td.appendChild(agendamentoDiv);
                 });
             } else {
@@ -940,6 +931,41 @@ function horarioParaMinutos(horario) {
 // A grade visual inclui a célula do horário final para exibir o bloco completo.
 function estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos) {
     return horarioMinutos >= inicioMinutos && horarioMinutos <= fimMinutos;
+}
+
+function aplicarClassesVisuaisAgendamento(elemento, equipamentos) {
+    const eqs = Array.isArray(equipamentos) ? equipamentos : [];
+    const temSalaInfo = eqs.some(e => e === 'Sala de Informática');
+    const temLousaInfo = eqs.some(e => e === 'Lousa Informática');
+
+    if (temSalaInfo && temLousaInfo) {
+        elemento.classList.add('agendamento-info-completo');
+    } else if (temSalaInfo) {
+        elemento.classList.add('agendamento-sala-info');
+    } else if (temLousaInfo) {
+        elemento.classList.add('agendamento-info');
+    }
+
+    if (eqs.some(e => e === 'Anfiteatro' || e === 'Lousa Anfiteatro')) {
+        elemento.classList.add('agendamento-anf');
+    }
+    if (eqs.some(e => e === 'Biblioteca' || e === 'Lousa Biblioteca')) {
+        elemento.classList.add('agendamento-bib');
+    }
+}
+
+function configurarBlocoContinuacao(elemento, agendamento) {
+    elemento.textContent = 'Continuacao';
+    elemento.setAttribute('aria-label', `Continuacao de ${agendamento.nome} - ${agendamento.turma}`);
+    elemento.style.padding = '4px 8px';
+    elemento.style.minHeight = '18px';
+    elemento.style.display = 'flex';
+    elemento.style.alignItems = 'center';
+    elemento.style.justifyContent = 'center';
+    elemento.style.fontSize = '0.72rem';
+    elemento.style.fontWeight = '600';
+    elemento.style.letterSpacing = '0.03em';
+    elemento.style.opacity = '0.92';
 }
 
 // A lógica de conflito usa intervalo [inicio, fim), deixando o horário final livre.
