@@ -310,16 +310,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Validação em tempo real para evitar sábados e domingos
     dataInput.addEventListener('change', function() {
-        if (this.value) {
-            const [ano, mes, dia] = this.value.split('-').map(Number);
-            const dataSelecionada = new Date(ano, mes - 1, dia);
-            const diaSemana = toLocalDate(dataSelecionada).getDay();
-            
-            if (diaSemana === 0 || diaSemana === 6) {
-                alert('Agendamentos não são permitidos aos sábados e domingos. Por favor, selecione um dia útil.');
-                this.value = '';
-                return;
-            }
+        const valorData = this.value;
+        // Proteção contra validação prematura no Chrome/Windows durante digitação manual
+        if (!valorData || valorData.length !== 10) {
+            return;
+        }
+
+        const [ano, mes, dia] = valorData.split('-').map(Number);
+        const dataSelecionada = new Date(ano, mes - 1, dia);
+        const diaSemana = toLocalDate(dataSelecionada).getDay();
+        
+        if (diaSemana === 0 || diaSemana === 6) {
+            alert('Agendamentos não são permitidos aos sábados e domingos. Por favor, selecione um dia útil.');
+            this.value = '';
+            return;
         }
     });
     
