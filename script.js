@@ -840,7 +840,12 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             }
             
             if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
-                agendamentosPorDiaHora[data][horario].forEach(ag => {
+                const agendamentosDaCelula = priorizarAgendamentosDoInicio(
+                    agendamentosPorDiaHora[data][horario],
+                    horario
+                );
+
+                agendamentosDaCelula.forEach(ag => {
                     const agendamentoDiv = document.createElement('div');
                     agendamentoDiv.className = 'agendamento-item agendamento-box';
                     
@@ -918,6 +923,18 @@ function horarioParaMinutos(horario) {
 // A grade visual inclui a célula do horário final para exibir o bloco completo.
 function estaNoPeriodoVisual(horarioMinutos, inicioMinutos, fimMinutos) {
     return horarioMinutos >= inicioMinutos && horarioMinutos <= fimMinutos;
+}
+
+// Quando uma célula representa ao mesmo tempo o fim de um agendamento e o início de outro,
+// o balão que começa no horário tem prioridade visual.
+function priorizarAgendamentosDoInicio(agendamentos, horario) {
+    const existeInicioNaCelula = agendamentos.some(ag => ag.horaInicio.substring(0, 5) === horario);
+
+    if (!existeInicioNaCelula) {
+        return agendamentos;
+    }
+
+    return agendamentos.filter(ag => ag.horaFim.substring(0, 5) !== horario || ag.horaInicio.substring(0, 5) === horario);
 }
 
 // A lógica de conflito usa intervalo [inicio, fim), deixando o horário final livre.
