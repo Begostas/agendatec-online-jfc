@@ -311,8 +311,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Validação em tempo real para evitar sábados e domingos
     dataInput.addEventListener('change', function() {
         const valorData = this.value;
-        // Proteção contra validação prematura no Chrome/Windows durante digitação manual
-        if (!valorData || valorData.length !== 10) {
+        // Ignora entradas parciais ou inconsistentes durante digitação manual no Chrome.
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(valorData)) {
             return;
         }
 
