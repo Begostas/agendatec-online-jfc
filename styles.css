@@ -708,7 +708,7 @@ select option {
 }
 
 .agendamento-sala-info {
-    background: #e60000 !important;
+    background: #ff6a00 !important;
     color: #f8f8f8 !important;
 }
 
@@ -813,6 +813,47 @@ select option {
 .modal-overlay.show {
     display: flex;
     animation: fadeIn 0.3s ease-out;
+}
+
+#modal-confirmacao .modal-container {
+    background-color: #ffffff;
+    color: #222222;
+    border: 1px solid #dfe3e8;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+}
+
+#modal-confirmacao .modal-header {
+    border-bottom: 1px solid #e7ebf0;
+    background-color: #f8fbff;
+}
+
+#modal-confirmacao .modal-header h3,
+#modal-confirmacao .modal-close,
+#modal-confirmacao .modal-subtitle,
+#modal-confirmacao .resumo-valor {
+    color: #222222;
+}
+
+#modal-confirmacao .modal-close:hover {
+    background-color: rgba(34, 34, 34, 0.08);
+}
+
+#modal-confirmacao .resumo-item {
+    background-color: #f8fafc;
+    border-left-color: #2c6fb7;
+}
+
+#modal-confirmacao .resumo-item:hover {
+    background-color: #f1f5f9;
+}
+
+#modal-confirmacao .resumo-label {
+    color: #2b2f33;
+}
+
+#modal-confirmacao .modal-footer {
+    border-top: 1px solid #e7ebf0;
+    background-color: #f8fafc;
 }
 
 .modal-container {
