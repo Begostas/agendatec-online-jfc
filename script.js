@@ -847,6 +847,8 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
             
             if (agendamentosPorDiaHora[data] && agendamentosPorDiaHora[data][horario]) {
                 agendamentosPorDiaHora[data][horario].forEach(ag => {
+                    const ehInicioDaCelula = ag.horaInicio.substring(0, 5) === horario;
+                    const ehTerminoDaCelula = ag.horaFim.substring(0, 5) === horario;
                     const agendamentoDiv = document.createElement('div');
                     agendamentoDiv.className = 'agendamento-item agendamento-box';
 
@@ -882,7 +884,11 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
                     
                     const equipamentoDiv = document.createElement('div');
                     equipamentoDiv.className = 'agendamento-equipamento';
-                    equipamentoDiv.textContent = ag.equipamentos.join(', ');
+                    equipamentoDiv.textContent = formatarTextoVisualAgendamento(
+                        ag.equipamentos,
+                        ehInicioDaCelula,
+                        ehTerminoDaCelula
+                    );
 
                     agendamentoDiv.appendChild(nomeDiv);
                     agendamentoDiv.appendChild(equipamentoDiv);
@@ -931,6 +937,20 @@ function aplicarClassesVisuaisAgendamento(elemento, equipamentos) {
     if (eqs.some(e => e === 'Biblioteca' || e === 'Lousa Biblioteca')) {
         elemento.classList.add('agendamento-bib');
     }
+}
+
+function formatarTextoVisualAgendamento(equipamentos, ehInicioDaCelula, ehTerminoDaCelula) {
+    const textoBase = Array.isArray(equipamentos) ? equipamentos.join(', ') : '';
+
+    if (ehInicioDaCelula) {
+        return `${textoBase} - Início`;
+    }
+
+    if (ehTerminoDaCelula) {
+        return `${textoBase} - Término`;
+    }
+
+    return textoBase;
 }
 
 function existeNovoInicioMesmoRecursoNaCelula(agendamentoAtual, agendamentos, data, horarioCompartilhado) {
