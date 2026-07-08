@@ -30,11 +30,12 @@ const traducoesFeriados = {
   "Christmas Day": "Natal" 
 };
 
-// Lista de feriados locais (nacional recente, estadual e municipal)
+// Lista centralizada de feriados locais (estadual e municipal - Três Lagoas/MS)
 const feriadosLocais = [ 
   { data: "11-20", nome: "Dia da Consciência Negra" }, 
   { data: "10-11", nome: "Divisão do Estado de Mato Grosso do Sul" }, 
-  { data: "06-15", nome: "Aniversário de Três Lagoas" } 
+  { data: "06-15", nome: "Aniversário de Três Lagoas" },
+  { data: "10-15", nome: "Dia do Professor" }
 ];
 
 // Função isolada para gerar feriados locais para o ano atual
@@ -51,8 +52,8 @@ function traduzirFeriado(nome) {
 }
 
 // Função isolada para gerar pontos facultativos baseados nos feriados
-function gerarPontosFacultativos(feriados) { 
-  const pontos = []; 
+function gerarPontosFacultativos(feriados, ano) { 
+  const pontos = [];
 
   feriados.forEach(f => { 
     const data = new Date(f.date + 'T00:00:00'); 
@@ -72,6 +73,12 @@ function gerarPontosFacultativos(feriados) {
       pontos.push(formatDateISO(sexta)); 
     } 
   }); 
+
+  // Adicionar sempre 30 de outubro como ponto facultativo
+  const diaProfessorPontoFacultativo = formatDateISO(new Date(ano, 9, 30)); // mês 9 é outubro (0-indexed)
+  if (!pontos.includes(diaProfessorPontoFacultativo)) {
+    pontos.push(diaProfessorPontoFacultativo);
+  }
 
   return pontos; 
 }
@@ -183,9 +190,9 @@ async function buscarFeriados(ano) {
     }
 }
 
-// Função fallback com feriados básicos do Brasil
+// Função fallback com feriados básicos do Brasil + locais de Três Lagoas/MS
 function getFeriadosBasicos(ano) {
-    return [
+    const feriadosNacionais = [
         { name: 'Ano Novo', date: `${ano}-01-01`, type: 'national' },
         { name: 'Tiradentes', date: `${ano}-04-21`, type: 'national' },
         { name: 'Dia do Trabalhador', date: `${ano}-05-01`, type: 'national' },
@@ -195,6 +202,9 @@ function getFeriadosBasicos(ano) {
         { name: 'Proclamação da República', date: `${ano}-11-15`, type: 'national' },
         { name: 'Natal', date: `${ano}-12-25`, type: 'national' }
     ];
+    // Adicionar feriados locais no fallback também
+    const feriadosLocaisGerados = gerarFeriadosLocais(ano);
+    return [...feriadosNacionais, ...feriadosLocaisGerados];
 }
 
 // Função para verificar se uma data é feriado
@@ -757,7 +767,7 @@ async function criarTabelaSemanal(agendamentos, semanaIndex = 0) {
     // Buscar feriados para o ano atual e gerar pontos facultativos
     const anoAtual = segundaFeira.getFullYear();
     const feriados = await buscarFeriados(anoAtual);
-    const pontosFacultativos = gerarPontosFacultativos(feriados);
+    const pontosFacultativos = gerarPontosFacultativos(feriados, anoAtual);
     
     // Atualizar cabeçalho da tabela com as datas e indicação de feriados/pontos facultativos
     const cabecalhos = document.querySelectorAll('.tabela-semanal .dia-col');
