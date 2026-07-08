@@ -88,7 +88,8 @@ async function carregarFeriados(ano) {
     try {
         const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${ano}/BR`)
         const dados = await res.json()
-        return dados
+        const feriadosNacionais = dados.filter(f => f.global === true)
+        return feriadosNacionais
     } catch (e) {
         console.warn('Erro ao carregar feriados:', e)
         return []
